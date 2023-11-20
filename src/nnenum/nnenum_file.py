@@ -1,7 +1,7 @@
 '''
 nnenum vnnlib front end
 
-usage: "python3 src.nnenum.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None]"
+usage: "python3 src.nnenum_file.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None]"
 
 Stanley Bak
 June 2021
@@ -96,7 +96,7 @@ def main():
     'main entry point'
 
     if len(sys.argv) < 3:
-        print('usage: "python3 src.nnenum.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None] [processes=<auto>]"')
+        print('usage: "python3 src.nnenum_file.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None] [processes=<auto>]"')
         sys.exit(1)
 
     onnx_filename = sys.argv[1]
