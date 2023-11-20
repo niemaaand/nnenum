@@ -182,9 +182,3 @@ def main():
         sys.exit(Result.results.index('error'))
 
 
-if __name__ == '__main__':
-
-    sys.argv.append("examples/acasxu/data/ACASXU_run2a_3_3_batch_2000.onnx")
-    sys.argv.append("examples/acasxu/data/prop_9.vnnlib")
-
-    main()
