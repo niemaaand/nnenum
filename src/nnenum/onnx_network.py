@@ -14,11 +14,11 @@ import onnxruntime as ort
 from skl2onnx.helpers.onnx_helper import enumerate_model_node_outputs, select_model_inputs_outputs
 from onnx.helper import ValueInfoProto, make_graph, make_model
 
-from nnenum.network import NeuralNetwork, AddLayer, FlattenLayer, ReluLayer, MatMulLayer, FullyConnectedLayer
-from nnenum.network import nn_unflatten, nn_flatten
-from nnenum.settings import Settings
+from src.nnenum.network import NeuralNetwork, AddLayer, FlattenLayer, ReluLayer, MatMulLayer, FullyConnectedLayer
+from src.nnenum.network import nn_unflatten, nn_flatten
+from src.nnenum.settings import Settings
 
-from nnenum.util import Freezable
+from src.nnenum.util import Freezable
 
 class LinearOnnxSubnetworkLayer(Freezable):
     '''a linear layer consisting of multiple onnx operators

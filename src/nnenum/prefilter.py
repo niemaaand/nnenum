@@ -9,13 +9,13 @@ Note: the logic for a lack of prefilter... using lp at each step, is also encode
 import time
 import numpy as np
 
-from nnenum.settings import Settings
-from nnenum.util import Freezable
-from nnenum.zonotope import Zonotope
-from nnenum.timerutil import Timers
+from src.nnenum.settings import Settings
+from src.nnenum.util import Freezable
+from src.nnenum.zonotope import Zonotope
+from src.nnenum.timerutil import Timers
 
-from nnenum.network import nn_flatten, nn_unflatten
-from nnenum.lputil import update_bounds_lp
+from src.nnenum.network import nn_flatten, nn_unflatten
+from src.nnenum.lputil import update_bounds_lp
 
 class LpCanceledException(Exception):
     'an exception used for when lp is cancelled'

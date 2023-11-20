@@ -11,13 +11,13 @@ import time
 
 import numpy as np
 
-from nnenum.timerutil import Timers
-from nnenum.overapprox import do_overapprox_rounds, make_prerelu_sims, OverapproxCanceledException
-from nnenum.settings import Settings
-from nnenum.util import Freezable, to_time_str
-from nnenum.network import nn_unflatten, nn_flatten
+from src.nnenum.timerutil import Timers
+from src.nnenum.overapprox import do_overapprox_rounds, make_prerelu_sims, OverapproxCanceledException
+from src.nnenum.settings import Settings
+from src.nnenum.util import Freezable, to_time_str
+from src.nnenum.network import nn_unflatten, nn_flatten
 
-from nnenum.prefilter import LpCanceledException
+from src.nnenum.prefilter import LpCanceledException
 
 class Worker(Freezable):
     'local data for a worker process'

@@ -7,8 +7,8 @@ from multiprocessing import Pool
 
 import numpy as np
 
-from nnenum.timerutil import Timers
-from nnenum.settings import Settings
+from src.nnenum.timerutil import Timers
+from src.nnenum.settings import Settings
 
 def init_worker(wfunc, serialized_star):
     'initializer parallel worker'

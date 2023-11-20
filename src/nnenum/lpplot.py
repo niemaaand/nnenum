@@ -9,8 +9,8 @@ make_plot_vecs is useful for controlling the accuracy (and decreasing overhead c
 
 import numpy as np
 
-import nnenum.kamenev as kamenev
-from nnenum.timerutil import Timers
+import src.nnenum.kamenev as kamenev
+from src.nnenum.timerutil import Timers
 
 def get_verts_nd(lpi, dims):
     '''

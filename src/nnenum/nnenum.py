@@ -1,7 +1,7 @@
 '''
 nnenum vnnlib front end
 
-usage: "python3 nnenum.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None]"
+usage: "python3 src.nnenum.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None]"
 
 Stanley Bak
 June 2021
@@ -11,12 +11,12 @@ import sys
 
 import numpy as np
 
-from nnenum.enumerate import enumerate_network
-from nnenum.settings import Settings
-from nnenum.result import Result
-from nnenum.onnx_network import load_onnx_network_optimized, load_onnx_network
-from nnenum.specification import Specification, DisjunctiveSpec
-from nnenum.vnnlib import get_num_inputs_outputs, read_vnnlib_simple
+from src.nnenum.enumerate import enumerate_network
+from src.nnenum.settings import Settings
+from src.nnenum.result import Result
+from src.nnenum.onnx_network import load_onnx_network_optimized, load_onnx_network
+from src.nnenum.specification import Specification, DisjunctiveSpec
+from src.nnenum.vnnlib import get_num_inputs_outputs, read_vnnlib_simple
 
 def make_spec(vnnlib_filename, onnx_filename):
     '''make Specification
@@ -96,7 +96,7 @@ def main():
     'main entry point'
 
     if len(sys.argv) < 3:
-        print('usage: "python3 nnenum.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None] [processes=<auto>]"')
+        print('usage: "python3 src.nnenum.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None] [processes=<auto>]"')
         sys.exit(1)
 
     onnx_filename = sys.argv[1]
@@ -183,4 +183,8 @@ def main():
 
 
 if __name__ == '__main__':
+
+    sys.argv.append("examples/acasxu/data/ACASXU_run2a_3_3_batch_2000.onnx")
+    sys.argv.append("examples/acasxu/data/prop_9.vnnlib")
+
     main()

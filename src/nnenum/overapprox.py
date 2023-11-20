@@ -5,12 +5,12 @@ Overapproximation analysis
 import time
 import numpy as np
 
-from nnenum.settings import Settings
-from nnenum.timerutil import Timers
-from nnenum.util import Freezable
-from nnenum.prefilter import update_bounds_lp, sort_splits
-from nnenum.specification import DisjunctiveSpec
-from nnenum.network import ReluLayer, FullyConnectedLayer, nn_flatten, nn_unflatten
+from src.nnenum.settings import Settings
+from src.nnenum.timerutil import Timers
+from src.nnenum.util import Freezable
+from src.nnenum.prefilter import update_bounds_lp, sort_splits
+from src.nnenum.specification import DisjunctiveSpec
+from src.nnenum.network import ReluLayer, FullyConnectedLayer, nn_flatten, nn_unflatten
 
 def try_quick_overapprox(ss, network, spec, start_time):
     'try a quick overapproximation, return is_safe, concrete_io_tuple'

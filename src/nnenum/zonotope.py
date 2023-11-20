@@ -6,15 +6,15 @@ Stanley Bak
 
 import numpy as np
 
-from nnenum.util import Freezable
-from nnenum.timerutil import Timers
-from nnenum import kamenev
-from nnenum.settings import Settings
+from src.nnenum.util import Freezable
+from src.nnenum.timerutil import Timers
+from src.nnenum import kamenev
+from src.nnenum.settings import Settings
 
 def zono_from_compressed_init_box(init_bm, init_bias, init_box):
     '''create a Zonotope from a compressed init box (deep copy)
 
-    parameters are those obtained from nnenum.util.compress_init_box()
+    parameters are those obtained from src.nnenum.util.compress_init_box()
     '''
 
     center = init_bias.copy()

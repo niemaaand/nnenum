@@ -5,7 +5,7 @@ This defines the object returned by enumerate_network
 
 import multiprocessing
 
-from nnenum.util import Freezable
+from src.nnenum.util import Freezable
 
 class Result(Freezable):
     'computation result object'

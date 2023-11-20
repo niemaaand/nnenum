@@ -8,8 +8,8 @@ import numpy as np
 import onnx
 from scipy.signal import convolve2d
 
-from nnenum.util import Freezable
-from nnenum.timerutil import Timers
+from src.nnenum.util import Freezable
+from src.nnenum.timerutil import Timers
 
 class NeuralNetwork(Freezable):
     'neural network container'

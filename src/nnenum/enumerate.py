@@ -13,17 +13,17 @@ import traceback
 
 import numpy as np
 
-from nnenum.timerutil import Timers
-from nnenum.lp_star import LpStar
-from nnenum.lp_star_state import LpStarState
-from nnenum.util import Freezable, FakeQueue, to_time_str, check_openblas_threads
-from nnenum.settings import Settings
-from nnenum.result import Result
-from nnenum.network import NeuralNetwork, nn_flatten
-from nnenum.worker import Worker
-from nnenum.overapprox import try_quick_overapprox
+from src.nnenum.timerutil import Timers
+from src.nnenum.lp_star import LpStar
+from src.nnenum.lp_star_state import LpStarState
+from src.nnenum.util import Freezable, FakeQueue, to_time_str, check_openblas_threads
+from src.nnenum.settings import Settings
+from src.nnenum.result import Result
+from src.nnenum.network import NeuralNetwork, nn_flatten
+from src.nnenum.worker import Worker
+from src.nnenum.overapprox import try_quick_overapprox
 
-from nnenum.prefilter import LpCanceledException
+from src.nnenum.prefilter import LpCanceledException
 
 def make_init_ss(init, network, spec, start_time):
     'make the initial star state'

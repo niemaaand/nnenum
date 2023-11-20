@@ -10,7 +10,7 @@ import multiprocessing
 
 import numpy as np
 
-from nnenum.util import FreezableMeta
+from src.nnenum.util import FreezableMeta
 
 class Settings(metaclass=FreezableMeta):
     '''enumeration settings. Access these using, for example, Settings.NUM_PROCESSES
@@ -56,7 +56,7 @@ class Settings(metaclass=FreezableMeta):
         cls.PRINT_INTERVAL = 0.1 # print interval in seconds (0 = no printing)
         cls.TIMING_STATS = False # compute and print detailed timing stats
 
-        cls.CHECK_SINGLE_THREAD_BLAS = True
+        cls.CHECK_SINGLE_THREAD_BLAS = False
         # idea... replace this with threadpoolctl: https://github.com/joblib/threadpoolctl
         
         cls.UPDATE_SHARED_VARS_INTERVAL = 0.05 # interval for each thread to update shared state

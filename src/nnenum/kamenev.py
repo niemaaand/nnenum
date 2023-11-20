@@ -8,7 +8,7 @@ May 16, 2019
 import numpy as np
 from scipy.spatial import ConvexHull
 
-from nnenum.timerutil import Timers
+from src.nnenum.timerutil import Timers
 
 def _get_orthonormal_rank(vecs, tol=1e-7):
     '''

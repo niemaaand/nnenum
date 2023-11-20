@@ -5,14 +5,14 @@ Stanley Bak
 
 import numpy as np
 
-from nnenum.lp_star import LpStar
-from nnenum.prefilter import Prefilter
-from nnenum.timerutil import Timers
-from nnenum.util import Freezable, compress_init_box
-from nnenum.network import FullyConnectedLayer, ReluLayer, FlattenLayer, AddLayer, MatMulLayer
-from nnenum.specification import DisjunctiveSpec
+from src.nnenum.lp_star import LpStar
+from src.nnenum.prefilter import Prefilter
+from src.nnenum.timerutil import Timers
+from src.nnenum.util import Freezable, compress_init_box
+from src.nnenum.network import FullyConnectedLayer, ReluLayer, FlattenLayer, AddLayer, MatMulLayer
+from src.nnenum.specification import DisjunctiveSpec
 
-from nnenum.settings import Settings
+from src.nnenum.settings import Settings
 
 class LpStarState(Freezable):
     'variables and methods associated with verification using lp star representation'

@@ -11,8 +11,8 @@ import onnxruntime as ort
 
 import numpy as np
 
-from nnenum.onnx_network import load_onnx_network
-from nnenum.network import nn_flatten
+from src.nnenum.onnx_network import load_onnx_network
+from src.nnenum.network import nn_flatten
 
 def load_unscaled_images(filename, specific_image=None, epsilon=0.0):
     '''read images from csv file

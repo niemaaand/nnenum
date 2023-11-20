@@ -6,11 +6,11 @@ Stanley Bak
 
 import numpy as np
 
-from nnenum.lpinstance import LpInstance
-from nnenum.util import Freezable
-from nnenum.settings import Settings
-from nnenum.timerutil import Timers
-from nnenum import kamenev
+from src.nnenum.lpinstance import LpInstance
+from src.nnenum.util import Freezable
+from src.nnenum.settings import Settings
+from src.nnenum.timerutil import Timers
+from src.nnenum import kamenev
 
 class LpStar(Freezable):
     '''generalized star set with lp constraints

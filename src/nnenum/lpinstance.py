@@ -14,9 +14,9 @@ from scipy.sparse import csr_matrix
 from termcolor import colored
 
 import swiglpk as glpk
-from nnenum.util import Freezable
-from nnenum.timerutil import Timers
-from nnenum.settings import Settings
+from src.nnenum.util import Freezable
+from src.nnenum.timerutil import Timers
+from src.nnenum.settings import Settings
 
 def get_lp_params(alternate_lp_params=False):
     'get the lp params object'
