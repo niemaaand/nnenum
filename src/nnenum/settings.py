@@ -33,6 +33,10 @@ class Settings(metaclass=FreezableMeta):
             num_cores = len(os.sched_getaffinity(0)) # doesn't work on some unix platforms
         except AttributeError:
             pass
+
+        # TODO:
+        if num_cores > 2:
+            num_cores = 2
         
         cls.NUM_PROCESSES = num_cores # use multiple cores
         cls.TIMEOUT = np.inf # verification timeout, in seconds (np.inf = no timeout)
