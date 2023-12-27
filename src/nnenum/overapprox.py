@@ -37,7 +37,7 @@ def try_quick_overapprox(ss, network, spec, start_time):
         if Settings.PRINT_OUTPUT and Settings.PRINT_OVERAPPROX_OUTPUT:
             print(f"Doing quick overapprox with {len(overapprox_types)} rounds...")
         
-        rr = do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func=check_cancel_func,
+        rr, violation_stars = do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func=check_cancel_func,
                                   overapprox_types=overapprox_types)
 
         rv = rr.is_safe, rr.concrete_io_tuple
@@ -48,7 +48,7 @@ def try_quick_overapprox(ss, network, spec, start_time):
 
     Timers.toc('try_quick_overapprox')
 
-    return rv
+    return rv, violation_stars
 
 def make_prerelu_sims(ss, network):
     '''compute the prerelu simulation values at each remaining layer
@@ -119,13 +119,13 @@ def check_round(ss, sets, spec_arg, check_cancel_func=None):
         
         single_safe = False
 
-        violation_star = None
+        violation_stars = []
         
         for s in sets:
             single_safe = s.check_spec(single_spec, check_cancel_func)
 
             if isinstance(s, StarOverapprox) and not single_safe:
-                violation_star = s.violation_star
+                violation_stars.append(s.violation_star)
 
             if single_safe:
                 if ss.safe_spec_list is not None:
@@ -136,12 +136,13 @@ def check_round(ss, sets, spec_arg, check_cancel_func=None):
         if not single_safe:
             whole_safe = False
 
-            if violation_star is not None:
-                unsafe_violation_stars.append(violation_star)
+            if violation_stars:
+                unsafe_violation_stars += violation_stars
                 unsafe_violation_indices.append(i)
 
             # just need one violation star
-            break
+            # break
+            ########## I want all violation stars######
 
     Timers.toc('overapprox_check_round')
 
@@ -244,10 +245,11 @@ def test_abstract_violation(dims, vstars, vindices, network, spec):
                     print("Found unsafe from second concrete execution of abstract counterexample")
 
                 concrete_io_tuple = (full_input, flat_output)
-                break
+                #break ############# remove break?
 
         if concrete_io_tuple is not None:
-            break
+            #break
+            pass
 
     Timers.toc('try_abstract_violation')
 
@@ -272,6 +274,8 @@ def do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func=None
 
     first_round = True
     sets = []
+
+    violation_stars = []
 
     for round_num, types in enumerate(overapprox_types):
         assert isinstance(types, list), f"types was not list: {types}"
@@ -308,20 +312,21 @@ def do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func=None
         rv.round_ms.append(diff * 1000)
 
         start = time.perf_counter()
-        rv.is_safe, vstars, vindices = check_round(ss, sets, spec, check_cancel_func)
+        rv.is_safe, vios, violation_indices = check_round(ss, sets, spec, check_cancel_func)
+        violation_stars += vios
 
         if rv.is_safe:
             break
 
-        if vstars:
+        if violation_stars:
             dims = ss.star.lpi.get_num_cols()
                 
-            _abstract_ios, rv.concrete_io_tuple = test_abstract_violation(dims, vstars, vindices, network, spec)
+            _abstract_ios, rv.concrete_io_tuple = test_abstract_violation(dims, violation_stars, violation_indices, network, spec)
 
         if first_round:
             first_round = False
         
-    return rv
+    return rv, violation_stars
 
 def run_overapprox_round(network, ss_init, sets, prerelu_sims, check_cancel_func=None):
     '''

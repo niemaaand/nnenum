@@ -38,21 +38,21 @@ class Settings(metaclass=FreezableMeta):
         if num_cores > 2:
             num_cores = 2
         
-        cls.NUM_PROCESSES = num_cores # use multiple cores
+        cls.NUM_PROCESSES = 1#num_cores # use multiple cores
         cls.TIMEOUT = np.inf # verification timeout, in seconds (np.inf = no timeout)
 
         cls.SINGLE_SET = False # only do single-set overapproximation (no splitting)
 
-        cls.PRINT_OUTPUT = True # print anything to stdout? (controls all output)
+        cls.PRINT_OUTPUT = False # print anything to stdout? (controls all output)
 
         cls.RESULT_SAVE_POLYS = False # save 2-d projections of output polygons to Result.polys?
         cls.RESULT_SAVE_POLYS_DIMS = (0, 1) # (x_dim, y_dim) of 2-d projections, used if RESULT_SAVE_POLYGONS is True
 
-        cls.RESULT_SAVE_STARS = False # save LpStar objects in result?
+        cls.RESULT_SAVE_STARS = True # save LpStar objects in result?
 
         cls.RESULT_SAVE_TIMERS = [] # list of timers to record in Result.timers; TIMING_STATS must be True
 
-        cls.FIND_CONCRETE_COUNTEREXAMPLES = True # should we try to find concrete counterexamples if spec violated?
+        cls.FIND_CONCRETE_COUNTEREXAMPLES = False # should we try to find concrete counterexamples if spec violated?
 
         #########################
         ### advanced settings ###
@@ -76,9 +76,10 @@ class Settings(metaclass=FreezableMeta):
         cls.CONTRACT_LP_CHECK_EPSILON = 1e-4 # numerical error tolerated when doing contractions before error, None=skip
 
         # the types of overapproximation to use in each round
-        cls.OVERAPPROX_TYPES = [['zono.area'],
-                                ['zono.area', 'zono.ybloat', 'zono.interval'],
-                                ['zono.area', 'zono.ybloat', 'zono.interval', 'star.lp']]
+        cls.OVERAPPROX_TYPES = [#['zono.area'],
+                                #['zono.area', 'zono.ybloat', 'zono.interval'],
+                                [#'zono.area', 'zono.ybloat', 'zono.interval',
+                                 'star.lp']]
 
         cls.OVERAPPROX_NEAR_ROOT_MAX_SPLITS = 2
         cls.OVERAPPROX_TYPES_NEAR_ROOT = cls.OVERAPPROX_TYPES
@@ -86,16 +87,17 @@ class Settings(metaclass=FreezableMeta):
         cls.OVERAPPROX_GEN_LIMIT_MULTIPLIER = 1.5 # don't try approx star if multizono.gens > THIS * last_safe_gens
         cls.OVERAPPROX_MIN_GEN_LIMIT = 50 # minimum generators to use as cap
         cls.OVERAPPROX_LP_TIMEOUT = 1.0 # timeout for LP part of overapproximation, use np.inf for unbounded
-        cls.OVERAPPROX_BOTH_BOUNDS = False # should overapprox star method compute both bounds or just reject branches?
+        cls.OVERAPPROX_BOTH_BOUNDS = True # should overapprox star method compute both bounds or just reject branches?
 
-        cls.SAVE_BRANCH_TUPLES_FILENAME = None
+        cls.SAVE_BRANCH_TUPLES_FILENAME = True
         cls.SAVE_BRANCH_TUPLES_TIMES = True # when saving branch tuples, also include runtimes
-        cls.BRANCH_MODE = cls.BRANCH_OVERAPPROX
-        cls.PRINT_BRANCH_TUPLES = False
+        cls.BRANCH_MODE = cls.BRANCH_EXACT
+        cls.PRINT_BRANCH_TUPLES = True
 
-        cls.TRY_QUICK_OVERAPPROX = True
-        cls.QUICK_OVERAPPROX_TYPES = [['zono.area'],
-                                      ['zono.area', 'zono.ybloat', 'zono.interval']]
+        cls.TRY_QUICK_OVERAPPROX = False
+        cls.QUICK_OVERAPPROX_TYPES = [#['zono.area'],
+                                      #['zono.area', 'zono.ybloat', 'zono.interval']
+                                    ]
         cls.PRINT_OVERAPPROX_OUTPUT = True # print progress on first overapprox
 
         # one_norm is especially good at finding counterexamples

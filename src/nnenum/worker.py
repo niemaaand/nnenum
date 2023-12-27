@@ -4,7 +4,7 @@ Part of the enumeration process splits work among multiple worker processes. Thi
 Stanley Bak
 Feb 2020
 '''
-
+import copy
 import math
 import random
 import time
@@ -38,22 +38,30 @@ class Worker(Freezable):
         'main worker loop'
 
         should_exit = False
+        cnt = 0
 
+        violation_stars = []
+        work_done_list2 = []
+
+        #try:
         while not should_exit:
+            cnt += 1
             # check if finished
             if self.priv.ss and self.priv.ss.is_finished(self.shared.network):
+                work_done_list2.append(self.priv.ss)
                 self.finished_star() # this sets self.priv.ss to None
 
                 if self.priv.work_list and Settings.BRANCH_MODE in [Settings.BRANCH_EGO, Settings.BRANCH_EGO_LIGHT]:
                     self.priv.work_list[-1].should_try_overapprox = True
 
             timer_name = Timers.stack[-1].name if Timers.stack else None
-            
+
             try: # catch lp timeout
                 if self.priv.ss and not self.has_timeout():
                     first_overapprox = len(self.priv.ss.branch_tuples) == 0
-                    
-                    self.consider_overapprox()
+
+                    is_safe, vios = self.consider_overapprox()
+                    violation_stars += vios
 
                     if self.priv.worker_index == 0 and first_overapprox:
                         self.shared.finished_initial_overapprox.value = 1
@@ -76,17 +84,19 @@ class Worker(Freezable):
 
             # pop queue before updating shared variables so it doesn't look like there's no work if queue is nonempty
             if self.priv.ss is None:
-                
+
                 if self.priv.work_list: # pop from local
                     self.priv.ss = self.priv.work_list.pop()
-                    
+                    self.priv.work_done_list.append(self.priv.ss)
+
                 else: # pop from global (shared)
 
                     if self.priv.worker_index == 0 or self.shared.finished_initial_overapprox.value:
                         self.priv.ss = self.shared.get_global_queue(timeout=0.01)
+                        self.priv.work_done_list.append(self.priv.ss)
 
                     if self.priv.ss is not None:
-                        
+
                         # make sure we tell other people we have work now
                         self.priv.shared_update_urgent = True
 
@@ -103,10 +113,27 @@ class Worker(Freezable):
             should_exit = self.update_shared_variables()
             self.print_progress()
 
+        assert len(self.priv.work_list) == 0, "Private work still remaining."  # assert no more work
+        assert self.shared.more_work_queue.qsize() == 0, "Shared work still remaining."
+
+        el_cnt = len(self.priv.work_done_list) - 1
+        while el_cnt >= 0:
+            if not self.priv.work_done_list[el_cnt]:
+                self.priv.work_done_list.pop(el_cnt)
+
+            el_cnt -= 1
+
+        #assert self.priv.work_done_list == work_done_list2, "work_done_list not the same as work_done_list2"
+
         Timers.tic('post_loop')
         self.update_final_stats()
         self.clear_remaining_work()
         Timers.toc('post_loop')
+
+        #except Exception as e:
+        #    raise e
+
+        return violation_stars, self.priv.work_done_list
 
     def add_branch_str(self, label):
         '''add the branch string to the tuples list (if we're saving it)'''
@@ -128,6 +155,7 @@ class Worker(Freezable):
         ss = self.priv.ss
         network = self.shared.network
         spec = self.shared.spec
+        violation_stars = []
 
         assert ss.remaining_splits() > 0
 
@@ -146,6 +174,8 @@ class Worker(Freezable):
 
             def check_cancel_func():
                 'worker cancel func. can raise OverapproxCanceledException'
+
+                return
 
                 if self.shared.should_exit.value:
                     raise OverapproxCanceledException(f'shared.should_exit was true')
@@ -206,8 +236,9 @@ class Worker(Freezable):
                     else:
                         otypes = Settings.OVERAPPROX_TYPES_NEAR_ROOT
 
-                    res = do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func, gen_limit,
+                    res, vios = do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func, gen_limit,
                                                overapprox_types=otypes)
+                    violation_stars += vios
 
                     if res.concrete_io_tuple is not None:
                         if Settings.PRINT_OUTPUT:
@@ -268,7 +299,7 @@ class Worker(Freezable):
                     self.priv.shared_update_urgent = True
                     self.priv.fulfillment_requested_time = time.perf_counter()
 
-        return is_safe
+        return is_safe, violation_stars
         
     def shuffle_work(self):
         'shuffle work'
@@ -514,10 +545,10 @@ class Worker(Freezable):
 
         rv = self.shared.stars_in_progress.value == 0
 
-        if not rv:
-            rv = self.shared.result.found_confirmed_counterexample.value == 1
+        #if not rv:
+        #    rv = self.shared.result.found_confirmed_counterexample.value == 1
 
-        if not rv and self.shared.had_exception.value == 1:
+        if False: #not rv and self.shared.had_exception.value == 1:
 
             if Settings.PRINT_OUTPUT:
                 print(f"Worker {self.priv.worker_index} quitting due to exception in some worker")
@@ -525,16 +556,19 @@ class Worker(Freezable):
             self.priv.had_exception = 1
             rv = True
 
-        if not rv and self.shared.had_timeout.value == 1:
+        if False: # not rv and self.shared.had_timeout.value == 1:
             rv = True
 
-        if rv and not self.shared.should_exit.value:
+        if False: # rv and not self.shared.should_exit.value:
             self.shared.should_exit.value = 1
 
         return rv
                         
     def clear_remaining_work(self):
         'sometimes we quit early, make sure the work queue is empty so processes exit as expected'
+
+        if not (len(self.priv.work_list) == 0 and self.shared.more_work_queue.qsize() == 0):
+            print("Clearing work. THIS SHOULD NOT HAPPEN!")
 
         # force an update
         self.priv.shared_update_urgent = True
@@ -622,6 +656,7 @@ class Worker(Freezable):
                     # min item is heaviest (closest to root)
                     # heaviest will be first item on list
                     new_ss = self.priv.work_list.pop(0)
+                    self.priv.work_done_list.append(new_ss)
 
                     self.priv.num_offloaded += 1
                     num_zeros -= 1

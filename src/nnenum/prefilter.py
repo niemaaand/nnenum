@@ -276,6 +276,8 @@ class Prefilter(Freezable):
         returns a Prefilter object for the other star
         '''
 
+        print("Splitting relu at neuron {}".format(neuron_index))
+
         i = neuron_index
         rv = Prefilter()
 

@@ -59,8 +59,11 @@ class LpStarState(Freezable):
 
     def __del__(self):
         # delete the circular reference which would prevent the memory from being freed
-        if self.prefilter is not None and self.prefilter.output_bounds:
-            self.prefilter.output_bounds.prefilter = None
+        try:
+            if self.prefilter is not None and self.prefilter.output_bounds:
+                self.prefilter.output_bounds.prefilter = None
+        except Exception as e:
+            pass
 
     def __str__(self):
         split_str = "no splits"

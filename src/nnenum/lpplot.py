@@ -22,8 +22,12 @@ def get_verts_nd(lpi, dims):
     assert isinstance(dims, list), f"unsupported dims type: {type(dims)}"
     dim_list = dims
 
+    # lpi.dims = all_splits[0].star.a_mat.shape()
+    # lpi.dims = len(col_bounds)
+
+
     for dim in dim_list:
-        assert dim < lpi.dims, f"lpi has {lpi.dims} dims, but requested dim_list was {dim_list}"
+        assert dim < lpi.dims(), f"lpi has {lpi.dims()} dims, but requested dim_list was {dim_list}"
 
     # algorithm: Kamenev's method in n-d
 
@@ -31,10 +35,10 @@ def get_verts_nd(lpi, dims):
         'return a supporting point for the given direction (maximize)'
 
         assert len(vec) == len(dim_list)
-        assert lpi.dims > 0
+        assert lpi.dims() > 0
 
         Timers.tic('construct')
-        d = np.zeros((lpi.dims,), dtype=float)
+        d = np.zeros((lpi.dims(),), dtype=float)
         # negative here because we want to MAXIMIZE not minimize
 
         for i, dim_index in enumerate(dim_list):
@@ -47,7 +51,7 @@ def get_verts_nd(lpi, dims):
         Timers.toc('set_minimize_dir')
 
         Timers.tic('lpi.minimize')
-        res = lpi.minimize(columns=[lpi.cur_vars_offset + n for n in range(lpi.dims)])
+        res = lpi.minimize(columns=[lpi.cur_vars_offset + n for n in range(lpi.dims())])
         Timers.toc('lpi.minimize')
 
         Timers.tic('make res')

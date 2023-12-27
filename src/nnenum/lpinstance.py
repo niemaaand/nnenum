@@ -272,6 +272,10 @@ class LpInstance(Freezable):
 
         return rv
 
+    def dims(self):
+        _1, _2, _3, _4, col_bounds = self.lp
+        return len(col_bounds)
+
     def _constraints_str(self, zero_print):
         'get the constraints matrix lines for __str__'
 

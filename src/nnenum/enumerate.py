@@ -22,7 +22,7 @@ from src.nnenum.result import Result
 from src.nnenum.network import NeuralNetwork, nn_flatten
 from src.nnenum.worker import Worker
 from src.nnenum.overapprox import try_quick_overapprox
-
+from src.nnenum.lpplot import get_verts_nd
 from src.nnenum.prefilter import LpCanceledException
 
 def make_init_ss(init, network, spec, start_time):
@@ -113,7 +113,7 @@ def enumerate_network(init, network, spec=None):
         try_quick = Settings.TRY_QUICK_OVERAPPROX or Settings.SINGLE_SET
 
         if init_ss is not None and try_quick and spec is not None:
-            proven_safe, concrete_io_tuple = try_quick_overapprox(init_ss, network, spec, start)
+            (proven_safe, concrete_io_tuple), violation_stars = try_quick_overapprox(init_ss, network, spec, start)
 
     if concrete_io_tuple is not None:
         # try_quick_overapprox found error
@@ -227,7 +227,8 @@ def process_result(shared):
         else:
             stars = shared.finished_stars.value
             approx = shared.finished_approx_stars.value
-            print(f"\nTotal Stars: {stars} ({stars - approx} exact, {approx} approx)")
+            print("Hi")
+            print("\nTotal Stars: {} ({} exact, {} approx)".format(stars, stars - approx, approx))
             
             suffix = "" if shared.result.total_secs < 60 else f" ({round(shared.result.total_secs, 2)} sec)"
             print(f"Runtime: {to_time_str(shared.result.total_secs)}{suffix}")
@@ -303,8 +304,10 @@ class SharedState(Freezable):
         
         if self.multithreaded:
             self.more_work_queue = multiprocessing.Queue()
+            self.done_work_queue = multiprocessing.Queue()
         else:
             self.more_work_queue = FakeQueue() # use deque for single-threaded, faster
+            self.done_work_queue = FakeQueue()
 
         # queue size is unreliable since multithreaded, use this instead
         self.stars_in_progress = multiprocessing.Value('i', 0)
@@ -393,6 +396,9 @@ class SharedState(Freezable):
         except queue.Empty:
             rv = None
 
+        #if rv:
+        #    self.done_work_queue.put(rv)
+
         Timers.toc('get_global_queue')
 
         return rv
@@ -408,6 +414,7 @@ class PrivateState(Freezable):
         #self.work_list = [] # list of tuples: (layer, neuron, id(ss), ss)
 
         self.work_list = []
+        self.work_done_list = []
 
         self.branch_tuples_list = None # for saving of branch strs to file
 
@@ -483,7 +490,14 @@ def worker_func(worker_index, shared):
     w = Worker(shared, priv)
 
     try:
-        w.main_loop()
+        violation_stars, all_splits = w.main_loop()
+
+        print("{} violation stars and {} splits".format(len(violation_stars), len(all_splits)))
+
+        print("violation stars: {}".format(violation_stars))
+        print("all splits: {}".format(all_splits))
+
+        #get_verts_nd(all_splits[0].star.lpi, [0, 1])
 
         if worker_index == 0 and Settings.PRINT_OUTPUT:
             print("\n")
@@ -572,7 +586,7 @@ def worker_func(worker_index, shared):
                 print("")
                 Timers.print_stats()
                 print("")
-    except:
+    except Exception as e:
         if Settings.PRINT_OUTPUT:
             print("\n")
             traceback.print_exc()
