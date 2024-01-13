@@ -4,7 +4,6 @@ Part of the enumeration process splits work among multiple worker processes. Thi
 Stanley Bak
 Feb 2020
 '''
-import copy
 import math
 import random
 import time

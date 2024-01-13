@@ -491,66 +491,7 @@ def verify_another_network(network, star_states, spec):
         res.append(r_t)
 
         cnt += 1
-
-    #for layer in enumerate(network):
-    #    if not isinstance(layer, ReluLayer):
-    #        output_star = layer.transform_star
-    #    else:
-    #        #### ?????????????????????????????????????????? TODO
-    #        # state = np.clip(state, 0, np.inf)
-    #        pass
     return res
-
-
-def calc_to_input_space(dims, vstars, vindices, network, spec):
-    # TODO: code taken from test_abstract_violation -> un-duplicate code
-
-    concrete_io_tuples = []
-    abstract_ios = []
-
-    for vstar, vindex in zip(vstars, vindices):
-        if isinstance(spec, DisjunctiveSpec):
-            cur_spec = spec.spec_list[vindex]
-        else:
-            cur_spec = spec
-
-        # try all rows
-        # rows = cur_spec.mat
-
-        # try sum of all rows
-        rows = []
-
-        sum_row = np.zeros(cur_spec.mat.shape[1])
-
-        for row in cur_spec.mat:
-            sum_row += row
-
-        rows.append(sum_row)
-
-        for row in rows:
-            # this one is almost free since objective direction is None
-            cinput, coutput = vstar.minimize_vec(None, return_io=True)
-            trimmed_input = cinput[:dims]
-
-            full_input = vstar.to_full_input(trimmed_input)
-            exec_output = network.execute(full_input)
-            flat_output = np.ravel(exec_output)
-
-            concrete_io_tuples.append((full_input, flat_output))
-
-            cinput, coutput = vstar.minimize_vec(row, return_io=True)
-
-            abstract_ios.append((cinput, coutput))
-
-            trimmed_input = cinput[:dims]
-            full_input = vstar.to_full_input(trimmed_input)
-            exec_output = network.execute(full_input)
-            flat_output = np.ravel(exec_output)
-
-            concrete_io_tuples.append((full_input, flat_output))
-
-    # TODO: verify: concrete_io_tuples contains abstract_ios
-    return abstract_ios, concrete_io_tuples
 
 
 def worker_func(worker_index, shared, go_in_recursion=True, network_big=None, init=None):
@@ -575,53 +516,34 @@ def worker_func(worker_index, shared, go_in_recursion=True, network_big=None, in
     try:
         violation_stars, all_splits = w.main_loop()
 
-        # deserialize
-        for ss in all_splits:
-            if isinstance(ss.star.lpi.lp, tuple):
-                ss.star.lpi.deserialize()
-
-        # there might remain some splits, because sub-network has already been proven save without performing split
-        # move star to last layer of network
-        for ss in all_splits:
-            if ss.remaining_splits() > 0:
-                n_layer = ss.cur_layer
-                while n_layer < len(shared.network.layers):
-                    if not isinstance(shared.network.layers[n_layer], ReluLayer):
-                        shared.network.layers[n_layer].transform_star(ss.star)
-                    n_layer += 1
-            # else: do nothing
-
-        # calc/transform to input space
-        abstract_ios, concrete_io_tuples = [], []
-        for ss in all_splits:
-            dims = ss.star.lpi.get_num_cols()
-            a_io, c_io = calc_to_input_space(dims, [ss.star], [0], shared.network, shared.spec) # TODO: verify arguments
-            abstract_ios.append(a_io)
-            concrete_io_tuples.append(c_io)
-            pass
-
-        from onnx import numpy_helper
-
-
-        #print("{} violation stars and {} splits".format(len(violation_stars), len(all_splits)))
         print("{} splits".format(len(all_splits)))
-
-        #get_verts_nd(all_splits[0].star.lpi, [0, 1])
-
-        #print("violation stars: {}".format(violation_stars)) # TODO: not really violation stars - to many are found (which are not violation)
         print("all splits: {}".format(all_splits))
 
         if go_in_recursion and network_big:
-            assert isinstance(init, (list, tuple, np.ndarray))
+            # deserialize
+            for ss in all_splits:
+                if isinstance(ss.star.lpi.lp, tuple):
+                    ss.star.lpi.deserialize()
+
+            # there might remain some splits, because sub-network has already been proven save without performing split
+            # move star to last layer of network
+            for ss in all_splits:
+                if ss.remaining_splits() > 0:
+                    n_layer = ss.cur_layer
+                    while n_layer < len(shared.network.layers):
+                        if not isinstance(shared.network.layers[n_layer], ReluLayer):
+                            shared.network.layers[n_layer].transform_star(ss.star)
+                        n_layer += 1
+                # else: do nothing
 
             # move stars to first layer of network
+            assert isinstance(init, (list, tuple, np.ndarray))
             all_splits_first_layer = []
             for ss in all_splits:
                 ss_new = LpStarState(init, spec=shared.spec)
                 ss_new.prefilter = ss.prefilter
                 ss_new.star.input_bounds_witnesses = ss.star.input_bounds_witnesses
                 ss_new.star.lpi = ss.star.lpi
-                #network_big.layers[0].transform_star(ss_new.star)
                 all_splits_first_layer.append(ss_new)
                 pass
 

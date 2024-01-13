@@ -245,7 +245,7 @@ def test_abstract_violation(dims, vstars, vindices, network, spec):
                     print("Found unsafe from second concrete execution of abstract counterexample")
 
                 concrete_io_tuple = (full_input, flat_output)
-                #break ############# remove break?
+                #break #############TODO:  remove break?
 
         #if concrete_io_tuple is not None:
             #break
