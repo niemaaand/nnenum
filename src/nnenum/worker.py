@@ -123,7 +123,7 @@ class Worker(Freezable):
 
             el_cnt -= 1
 
-        #assert self.priv.work_done_list == work_done_list2, "work_done_list not the same as work_done_list2"
+        assert len(self.priv.work_done_list) >= len(work_done_list2), "work_done_list not the same as work_done_list2"
 
         Timers.tic('post_loop')
         self.update_final_stats()
@@ -208,8 +208,10 @@ class Worker(Freezable):
                     sim_in = ss.star.to_full_input(sim_in_flat)
 
                     # run through complete network in to out before counting it
-                    sim_out = network.execute(sim_in)
+                    sim_out, branching_list = network.execute(sim_in, save_branching=True)
                     sim_out = nn_flatten(sim_out)
+
+                    branch_list_in_branch_tuples(branching_list, ss.branch_tuples) # no idea about the meaning of this method
 
                     if spec.is_violation(sim_out):
                         concrete_io_tuple = [sim_in, sim_out]
@@ -545,10 +547,11 @@ class Worker(Freezable):
 
         rv = self.shared.stars_in_progress.value == 0
 
+        # commented, to find all splits and to not stop after first counterexample is found
         #if not rv:
         #    rv = self.shared.result.found_confirmed_counterexample.value == 1
 
-        if False: #not rv and self.shared.had_exception.value == 1:
+        if not rv and self.shared.had_exception.value == 1:
 
             if Settings.PRINT_OUTPUT:
                 print(f"Worker {self.priv.worker_index} quitting due to exception in some worker")
@@ -556,10 +559,10 @@ class Worker(Freezable):
             self.priv.had_exception = 1
             rv = True
 
-        if False: # not rv and self.shared.had_timeout.value == 1:
+        if not rv and self.shared.had_timeout.value == 1:
             rv = True
 
-        if False: # rv and not self.shared.should_exit.value:
+        if rv and not self.shared.should_exit.value:
             self.shared.should_exit.value = 1
 
         return rv

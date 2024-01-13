@@ -13,13 +13,15 @@ import traceback
 
 import numpy as np
 
+from src.nnenum.onnx_network import LinearOnnxSubnetworkLayer
+from src.nnenum.specification import DisjunctiveSpec
 from src.nnenum.timerutil import Timers
 from src.nnenum.lp_star import LpStar
 from src.nnenum.lp_star_state import LpStarState
 from src.nnenum.util import Freezable, FakeQueue, to_time_str, check_openblas_threads
 from src.nnenum.settings import Settings
 from src.nnenum.result import Result
-from src.nnenum.network import NeuralNetwork, nn_flatten
+from src.nnenum.network import NeuralNetwork, nn_flatten, ReluLayer, FullyConnectedLayer
 from src.nnenum.worker import Worker
 from src.nnenum.overapprox import try_quick_overapprox
 from src.nnenum.lpplot import get_verts_nd
@@ -69,7 +71,7 @@ def make_init_ss(init, network, spec, start_time):
 
     return ss
 
-def enumerate_network(init, network, spec=None):
+def enumerate_network(init, network, spec=None, go_in_recursion=True, network_big=None):
     '''enumerate the branches in the network
 
     init can either be a 2-d list or an lp_star or an lp_star_state
@@ -157,7 +159,7 @@ def enumerate_network(init, network, spec=None):
                     if Settings.PRINT_OUTPUT:
                         print("Running single-threaded")
 
-                    worker_func(0, shared)
+                    worker_func(0, shared, go_in_recursion=go_in_recursion, network_big=network_big, init=init)
                 else:
                     processes = []
 
@@ -165,7 +167,7 @@ def enumerate_network(init, network, spec=None):
                         print(f"Running in parallel with {num_workers} processes")
 
                     for index in range(Settings.NUM_PROCESSES):
-                        p = multiprocessing.Process(target=worker_func, args=(index, shared))
+                        p = multiprocessing.Process(target=worker_func, args=(index, shared, go_in_recursion))
                         p.start()
                         processes.append(p)
 
@@ -227,7 +229,6 @@ def process_result(shared):
         else:
             stars = shared.finished_stars.value
             approx = shared.finished_approx_stars.value
-            print("Hi")
             print("\nTotal Stars: {} ({} exact, {} approx)".format(stars, stars - approx, approx))
             
             suffix = "" if shared.result.total_secs < 60 else f" ({round(shared.result.total_secs, 2)} sec)"
@@ -253,6 +254,7 @@ def process_result(shared):
             elif shared.result.found_counterexample.value:
                 print(f"Result: network seems UNSAFE, but not confirmed counterexamples (possible numerial " + \
                       "precision issues)")
+                # TODO: gradient descent -> adverserial attack to find counterexample
             elif shared.spec is not None:
                 print(f"Result: network is SAFE") # safe subject to numerical accuracy issues
 
@@ -470,7 +472,88 @@ class PrivateState(Freezable):
 
         self.freeze_attrs()
 
-def worker_func(worker_index, shared):
+
+def verify_another_network(network, star_states, spec):
+    import swiglpk as glpk
+
+    res = []
+
+    cnt = 0
+    for star_state in star_states:
+
+        print("\n\n{}th star: ".format(cnt))
+
+        if isinstance(star_state.star.lpi.lp, tuple):
+            star_state.star.lpi.deserialize()
+
+        assert isinstance(star_state.star.lpi.lp, type(glpk.glp_create_prob())), "lp has to be type SwigPyObject"
+        r_t = enumerate_network(star_state.star, network, spec, go_in_recursion=False)
+        res.append(r_t)
+
+        cnt += 1
+
+    #for layer in enumerate(network):
+    #    if not isinstance(layer, ReluLayer):
+    #        output_star = layer.transform_star
+    #    else:
+    #        #### ?????????????????????????????????????????? TODO
+    #        # state = np.clip(state, 0, np.inf)
+    #        pass
+    return res
+
+
+def calc_to_input_space(dims, vstars, vindices, network, spec):
+    # TODO: code taken from test_abstract_violation -> un-duplicate code
+
+    concrete_io_tuples = []
+    abstract_ios = []
+
+    for vstar, vindex in zip(vstars, vindices):
+        if isinstance(spec, DisjunctiveSpec):
+            cur_spec = spec.spec_list[vindex]
+        else:
+            cur_spec = spec
+
+        # try all rows
+        # rows = cur_spec.mat
+
+        # try sum of all rows
+        rows = []
+
+        sum_row = np.zeros(cur_spec.mat.shape[1])
+
+        for row in cur_spec.mat:
+            sum_row += row
+
+        rows.append(sum_row)
+
+        for row in rows:
+            # this one is almost free since objective direction is None
+            cinput, coutput = vstar.minimize_vec(None, return_io=True)
+            trimmed_input = cinput[:dims]
+
+            full_input = vstar.to_full_input(trimmed_input)
+            exec_output = network.execute(full_input)
+            flat_output = np.ravel(exec_output)
+
+            concrete_io_tuples.append((full_input, flat_output))
+
+            cinput, coutput = vstar.minimize_vec(row, return_io=True)
+
+            abstract_ios.append((cinput, coutput))
+
+            trimmed_input = cinput[:dims]
+            full_input = vstar.to_full_input(trimmed_input)
+            exec_output = network.execute(full_input)
+            flat_output = np.ravel(exec_output)
+
+            concrete_io_tuples.append((full_input, flat_output))
+
+    # TODO: verify: concrete_io_tuples contains abstract_ios
+    return abstract_ios, concrete_io_tuples
+
+
+def worker_func(worker_index, shared, go_in_recursion=True, network_big=None, init=None):
     'worker function during verification'
 
     np.seterr(all='raise', under=Settings.UNDERFLOW_BEHAVIOR) # raise exceptions on floating-point errors
@@ -492,12 +575,61 @@ def worker_func(worker_index, shared):
     try:
         violation_stars, all_splits = w.main_loop()
 
-        print("{} violation stars and {} splits".format(len(violation_stars), len(all_splits)))
+        # deserialize
+        for ss in all_splits:
+            if isinstance(ss.star.lpi.lp, tuple):
+                ss.star.lpi.deserialize()
 
-        print("violation stars: {}".format(violation_stars))
-        print("all splits: {}".format(all_splits))
+        # there might remain some splits, because sub-network has already been proven save without performing split
+        # move star to last layer of network
+        for ss in all_splits:
+            if ss.remaining_splits() > 0:
+                n_layer = ss.cur_layer
+                while n_layer < len(shared.network.layers):
+                    if not isinstance(shared.network.layers[n_layer], ReluLayer):
+                        shared.network.layers[n_layer].transform_star(ss.star)
+                    n_layer += 1
+            # else: do nothing
+
+        # calc/transform to input space
+        abstract_ios, concrete_io_tuples = [], []
+        for ss in all_splits:
+            dims = ss.star.lpi.get_num_cols()
+            a_io, c_io = calc_to_input_space(dims, [ss.star], [0], shared.network, shared.spec) # TODO: verify arguments
+            abstract_ios.append(a_io)
+            concrete_io_tuples.append(c_io)
+            pass
+
+        from onnx import numpy_helper
+
+
+        #print("{} violation stars and {} splits".format(len(violation_stars), len(all_splits)))
+        print("{} splits".format(len(all_splits)))
 
         #get_verts_nd(all_splits[0].star.lpi, [0, 1])
+
+        #print("violation stars: {}".format(violation_stars)) # TODO: not really violation stars - to many are found (which are not violation)
+        print("all splits: {}".format(all_splits))
+
+        if go_in_recursion and network_big:
+            assert isinstance(init, (list, tuple, np.ndarray))
+
+            # move stars to first layer of network
+            all_splits_first_layer = []
+            for ss in all_splits:
+                ss_new = LpStarState(init, spec=shared.spec)
+                ss_new.prefilter = ss.prefilter
+                ss_new.star.input_bounds_witnesses = ss.star.input_bounds_witnesses
+                ss_new.star.lpi = ss.star.lpi
+                #network_big.layers[0].transform_star(ss_new.star)
+                all_splits_first_layer.append(ss_new)
+                pass
+
+
+            print("\nVerifying big network...\n")
+            another_res = verify_another_network(network_big, all_splits_first_layer, shared.spec)
+            print("\nVerification of big network done.\n")
+
 
         if worker_index == 0 and Settings.PRINT_OUTPUT:
             print("\n")

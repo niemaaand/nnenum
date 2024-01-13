@@ -43,7 +43,7 @@ class Settings(metaclass=FreezableMeta):
 
         cls.SINGLE_SET = False # only do single-set overapproximation (no splitting)
 
-        cls.PRINT_OUTPUT = False # print anything to stdout? (controls all output)
+        cls.PRINT_OUTPUT = True # print anything to stdout? (controls all output)
 
         cls.RESULT_SAVE_POLYS = False # save 2-d projections of output polygons to Result.polys?
         cls.RESULT_SAVE_POLYS_DIMS = (0, 1) # (x_dim, y_dim) of 2-d projections, used if RESULT_SAVE_POLYGONS is True
@@ -78,7 +78,7 @@ class Settings(metaclass=FreezableMeta):
         # the types of overapproximation to use in each round
         cls.OVERAPPROX_TYPES = [#['zono.area'],
                                 #['zono.area', 'zono.ybloat', 'zono.interval'],
-                                [#'zono.area', 'zono.ybloat', 'zono.interval',
+                                ['zono.area', 'zono.ybloat', 'zono.interval',
                                  'star.lp']]
 
         cls.OVERAPPROX_NEAR_ROOT_MAX_SPLITS = 2
@@ -89,14 +89,14 @@ class Settings(metaclass=FreezableMeta):
         cls.OVERAPPROX_LP_TIMEOUT = 1.0 # timeout for LP part of overapproximation, use np.inf for unbounded
         cls.OVERAPPROX_BOTH_BOUNDS = True # should overapprox star method compute both bounds or just reject branches?
 
-        cls.SAVE_BRANCH_TUPLES_FILENAME = True
+        cls.SAVE_BRANCH_TUPLES_FILENAME = None # TODO: ATTENTION: cannot be used with PRINT_OUTPUT=True # "branch_tuple_files.txt"
         cls.SAVE_BRANCH_TUPLES_TIMES = True # when saving branch tuples, also include runtimes
-        cls.BRANCH_MODE = cls.BRANCH_EXACT
+        cls.BRANCH_MODE = cls.BRANCH_OVERAPPROX  # cls.BRANCH_EXACT
         cls.PRINT_BRANCH_TUPLES = True
 
-        cls.TRY_QUICK_OVERAPPROX = False
-        cls.QUICK_OVERAPPROX_TYPES = [#['zono.area'],
-                                      #['zono.area', 'zono.ybloat', 'zono.interval']
+        cls.TRY_QUICK_OVERAPPROX = True  #False
+        cls.QUICK_OVERAPPROX_TYPES = [['zono.area'], #
+                                      ['zono.area', 'zono.ybloat', 'zono.interval'] #
                                     ]
         cls.PRINT_OVERAPPROX_OUTPUT = True # print progress on first overapprox
 

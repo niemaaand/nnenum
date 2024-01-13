@@ -6,7 +6,7 @@ usage: "python3 src.nnenum_file.py <onnx_file> <vnnlib_file> [timeout=None] [out
 Stanley Bak
 June 2021
 '''
-
+import os.path
 import sys
 
 import numpy as np
@@ -95,27 +95,28 @@ def set_image_settings():
 def main():
     'main entry point'
 
-    if len(sys.argv) < 3:
-        print('usage: "python3 src.nnenum_file.py <onnx_file> <vnnlib_file> [timeout=None] [outfile=None] [processes=<auto>]"')
+    if len(sys.argv) < 4:
+        print('usage: "python3 src.nnenum_file.py <onnx_file> <onnx_file_big> <vnnlib_file> [timeout=None] [outfile=None] [processes=<auto>]"')
         sys.exit(1)
 
     onnx_filename = sys.argv[1]
-    vnnlib_filename = sys.argv[2]
+    onnx_filename_big = sys.argv[2]
+    vnnlib_filename = sys.argv[3]
     timeout = None
     outfile = None
 
-    if len(sys.argv) >= 4:
-        timeout = float(sys.argv[3])
-
     if len(sys.argv) >= 5:
-        outfile = sys.argv[4]
+        timeout = float(sys.argv[4])
 
     if len(sys.argv) >= 6:
-        processes = int(sys.argv[5])
-        Settings.NUM_PROCESSES = processes
+        outfile = sys.argv[5]
 
     if len(sys.argv) >= 7:
-        settings_str = sys.argv[6]
+        processes = int(sys.argv[6])
+        Settings.NUM_PROCESSES = processes
+
+    if len(sys.argv) >= 8:
+        settings_str = sys.argv[7]
     else:
         settings_str = "auto"
 
@@ -127,6 +128,15 @@ def main():
     except:
         # cannot do optimized load due to unsupported layers
         network = load_onnx_network(onnx_filename)
+
+    if os.path.exists(onnx_filename_big):
+        try:
+            network_big = load_onnx_network_optimized(onnx_filename_big)
+        except:
+            # cannot do optimized load due to unsupported layers
+            network_big = load_onnx_network(onnx_filename_big)
+    else:
+        network_big = None
 
     result_str = 'none' # gets overridden
 
@@ -155,7 +165,7 @@ def main():
 
             Settings.TIMEOUT = timeout
 
-        res = enumerate_network(init_box, network, spec)
+        res = enumerate_network(init_box, network, spec, network_big=network_big)
         result_str = res.result_str
 
         if timeout is not None:

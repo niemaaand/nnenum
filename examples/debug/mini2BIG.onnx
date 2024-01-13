@@ -1,0 +1,242 @@
+pytorch2.1.1:¸¶
+¢
+onnx::MatMul_0
+onnx::MatMul_18 /layers/layers.0/MatMul_output_0/layers/layers.0/MatMul"MatMul2»C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\linear.py(114): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\container.py(215): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\src\student_teacher\student_models\mini_debug_model.py(102): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(124): wrapper
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(133): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(1285): _get_trace_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(915): _trace_and_get_graph_from_model
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1011): _create_jit_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1135): _model_to_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1596): _export
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(516): export
+C:\Code\KIT\PraktikumProgrammverifikation\src\utils\onnx_utils.py(17): export_model_to_onnx
+C:\Code\KIT\PraktikumProgrammverifikation\src\debug\build_debug_network.py(16): build_debug_network
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(17): main
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(26): <module>
+
+©
+layers.0.bias
+ /layers/layers.0/MatMul_output_0/layers/layers.0/Add_output_0/layers/layers.0/Add"Add2»C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\linear.py(114): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\container.py(215): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\src\student_teacher\student_models\mini_debug_model.py(102): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(124): wrapper
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(133): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(1285): _get_trace_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(915): _trace_and_get_graph_from_model
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1011): _create_jit_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1135): _model_to_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1596): _export
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(516): export
+C:\Code\KIT\PraktikumProgrammverifikation\src\utils\onnx_utils.py(17): export_model_to_onnx
+C:\Code\KIT\PraktikumProgrammverifikation\src\debug\build_debug_network.py(16): build_debug_network
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(17): main
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(26): <module>
+
+‚
+/layers/layers.0/Add_output_0/layers/layers.1/Relu_output_0/layers/layers.1/Relu"Relu2£C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\functional.py(1471): relu
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\activation.py(101): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\container.py(215): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\src\student_teacher\student_models\mini_debug_model.py(102): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(124): wrapper
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(133): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(1285): _get_trace_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(915): _trace_and_get_graph_from_model
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1011): _create_jit_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1135): _model_to_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1596): _export
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(516): export
+C:\Code\KIT\PraktikumProgrammverifikation\src\utils\onnx_utils.py(17): export_model_to_onnx
+C:\Code\KIT\PraktikumProgrammverifikation\src\debug\build_debug_network.py(16): build_debug_network
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(17): main
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(26): <module>
+
+²
+/layers/layers.1/Relu_output_0
+onnx::MatMul_19 /layers/layers.2/MatMul_output_0/layers/layers.2/MatMul"MatMul2»C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\linear.py(114): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\container.py(215): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\src\student_teacher\student_models\mini_debug_model.py(102): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(124): wrapper
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(133): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(1285): _get_trace_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(915): _trace_and_get_graph_from_model
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1011): _create_jit_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1135): _model_to_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1596): _export
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(516): export
+C:\Code\KIT\PraktikumProgrammverifikation\src\utils\onnx_utils.py(17): export_model_to_onnx
+C:\Code\KIT\PraktikumProgrammverifikation\src\debug\build_debug_network.py(16): build_debug_network
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(17): main
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(26): <module>
+
+©
+layers.2.bias
+ /layers/layers.2/MatMul_output_0/layers/layers.2/Add_output_0/layers/layers.2/Add"Add2»C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\linear.py(114): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\container.py(215): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\src\student_teacher\student_models\mini_debug_model.py(102): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(124): wrapper
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(133): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(1285): _get_trace_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(915): _trace_and_get_graph_from_model
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1011): _create_jit_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1135): _model_to_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1596): _export
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(516): export
+C:\Code\KIT\PraktikumProgrammverifikation\src\utils\onnx_utils.py(17): export_model_to_onnx
+C:\Code\KIT\PraktikumProgrammverifikation\src\debug\build_debug_network.py(16): build_debug_network
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(17): main
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(26): <module>
+
+‚
+/layers/layers.2/Add_output_0/layers/layers.3/Relu_output_0/layers/layers.3/Relu"Relu2£C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\functional.py(1471): relu
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\activation.py(101): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\container.py(215): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\src\student_teacher\student_models\mini_debug_model.py(102): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(124): wrapper
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(133): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(1285): _get_trace_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(915): _trace_and_get_graph_from_model
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1011): _create_jit_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1135): _model_to_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1596): _export
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(516): export
+C:\Code\KIT\PraktikumProgrammverifikation\src\utils\onnx_utils.py(17): export_model_to_onnx
+C:\Code\KIT\PraktikumProgrammverifikation\src\debug\build_debug_network.py(16): build_debug_network
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(17): main
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(26): <module>
+
+²
+/layers/layers.3/Relu_output_0
+onnx::MatMul_20 /layers/layers.4/MatMul_output_0/layers/layers.4/MatMul"MatMul2»C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\linear.py(114): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\container.py(215): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\src\student_teacher\student_models\mini_debug_model.py(102): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(124): wrapper
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(133): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(1285): _get_trace_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(915): _trace_and_get_graph_from_model
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1011): _create_jit_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1135): _model_to_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1596): _export
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(516): export
+C:\Code\KIT\PraktikumProgrammverifikation\src\utils\onnx_utils.py(17): export_model_to_onnx
+C:\Code\KIT\PraktikumProgrammverifikation\src\debug\build_debug_network.py(16): build_debug_network
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(17): main
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(26): <module>
+
+Ž
+layers.4.bias
+ /layers/layers.4/MatMul_output_017/layers/layers.4/Add"Add2»C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\linear.py(114): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\container.py(215): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\src\student_teacher\student_models\mini_debug_model.py(102): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1508): _slow_forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(124): wrapper
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(133): forward
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1527): _call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\nn\modules\module.py(1518): _wrapped_call_impl
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\jit\_trace.py(1285): _get_trace_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(915): _trace_and_get_graph_from_model
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1011): _create_jit_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1135): _model_to_graph
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(1596): _export
+C:\Code\KIT\PraktikumProgrammverifikation\venv\lib\site-packages\torch\onnx\utils.py(516): export
+C:\Code\KIT\PraktikumProgrammverifikation\src\utils\onnx_utils.py(17): export_model_to_onnx
+C:\Code\KIT\PraktikumProgrammverifikation\src\debug\build_debug_network.py(16): build_debug_network
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(17): main
+C:\Code\KIT\PraktikumProgrammverifikation\src\main.py(26): <module>
+
+main_graph*%Blayers.0.biasJ  €?  €?        *Blayers.2.biasJ  €?    *Blayers.4.biasJ  €?*9Bonnx::MatMul_18J   €?  €?  €¿      €?  @À   @    *9Bonnx::MatMul_19J   €?      €?       @            *!Bonnx::MatMul_20J  €?  €?Z
+onnx::MatMul_0
+
+
+b
+17
+
+
+B

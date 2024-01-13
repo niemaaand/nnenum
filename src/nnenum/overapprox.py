@@ -247,9 +247,9 @@ def test_abstract_violation(dims, vstars, vindices, network, spec):
                 concrete_io_tuple = (full_input, flat_output)
                 #break ############# remove break?
 
-        if concrete_io_tuple is not None:
+        #if concrete_io_tuple is not None:
             #break
-            pass
+        #    pass
 
     Timers.toc('try_abstract_violation')
 
