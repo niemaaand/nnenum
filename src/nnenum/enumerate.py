@@ -12,6 +12,7 @@ import queue
 import traceback
 
 import numpy as np
+import swiglpk as glpk
 
 from src.nnenum.timerutil import Timers
 from src.nnenum.lp_star import LpStar
@@ -69,7 +70,7 @@ def make_init_ss(init, network, spec, start_time):
 
     return ss
 
-def enumerate_network(init, network, spec=None, network_big=None, use_multithreading=True, find_all_splits=False):
+def enumerate_network(init, network, spec=None, network_big=None, use_multithreading=True, find_all_splits=False, reset_timers=True):
     '''enumerate the branches in the network
 
     init can either be a 2-d list or an lp_star or an lp_star_state
@@ -86,7 +87,8 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
     if Settings.CHECK_SINGLE_THREAD_BLAS:
         check_openblas_threads()
 
-    Timers.reset()
+    if reset_timers:
+        Timers.reset()
 
     if not Settings.TIMING_STATS:
         Timers.disable()
@@ -180,6 +182,8 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
 
             assert shared.more_work_queue.empty()
 
+            shared.result.total_secs = time.perf_counter() - start
+
             if network_big:
 
                 assert len(shared.done_work_list) > 0
@@ -215,25 +219,100 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
                     pass
 
                 print("\nVerifying big network...\n")
-                another_res = verify_another_network(network_big, all_splits_first_layer, shared.spec)
+                Timers.tic("verify_another_network")
+                results_of_big_network = verify_another_network(network_big, all_splits_first_layer, shared.spec)
+                Timers.toc("verify_another_network")
                 print("\nVerification of big network done.\n")
 
+                print("\nResult of small network:")
+                process_result(shared)
 
-            rv = shared.result
-            rv.total_secs = time.perf_counter() - start
-            process_result(shared)
+                print("\nOverall result (big and small network): \n")
+                overall_result: Result = results_of_big_network[-1]
 
-            
+                new_overall_result = Result(network_big)
+
+                new_overall_result.total_secs = time.perf_counter() - start
+                new_overall_result.timers = shared.result.timers
+
+                new_overall_result.cinput = overall_result.cinput
+                new_overall_result.coutput = overall_result.coutput
+                new_overall_result.found_confirmed_counterexample = overall_result.found_confirmed_counterexample
+                new_overall_result.found_counterexample = overall_result.found_counterexample
+                new_overall_result.manager = overall_result.manager
+                new_overall_result.result_str = overall_result.result_str
+
+                new_finished_stars, new_unfinished_stars, new_finished_work_frac = (0, 0, 0)
+
+                for r, cnt in zip(results_of_big_network, range(len(results_of_big_network))):
+                    new_overall_result.polys += r.polys if r.polys else []
+                    new_overall_result.stars += r.stars if r.stars else []
+                    new_overall_result.total_lps += r.total_lps
+                    new_overall_result.total_lps_enum += r.total_lps_enum
+                    new_overall_result.total_stars += r.total_stars
+
+                    (finished_stars, unfinished_stars, finished_work_frac) = r.progress_tuple
+                    new_finished_stars += finished_stars
+                    new_unfinished_stars += unfinished_stars
+                    new_finished_work_frac += (finished_work_frac if cnt == len(results_of_big_network) - 1 else 1) * shared.done_work_list[cnt].work_frac
+
+                new_overall_result.progress_tuple = (new_finished_stars, new_unfinished_stars, new_finished_work_frac)
+
+                process_result_res(new_overall_result)
+
+                rv = new_overall_result
+            else:
+                process_result(shared)
+                rv = shared.result
 
     if rv.total_secs is None:
         rv.total_secs = time.perf_counter() - start
-    
+
     Timers.toc('enumerate_network')
 
-    if Settings.TIMING_STATS and Settings.PRINT_OUTPUT and rv.result_str != 'error':
+    if Settings.TIMING_STATS and Settings.PRINT_OUTPUT and rv.result_str != 'error' and reset_timers:
         Timers.print_stats()
 
     return rv
+
+
+def process_result_res(result: Result):
+    (finished_stars, unfinished_stars, finished_work_frac) = result.progress_tuple
+
+    suffix = "" if result.total_secs < 60 else f" ({round(result.total_secs, 2)} sec)"
+    print(f"Runtime: {to_time_str(result.total_secs)}{suffix}")
+    print(f"Completed work frac: {finished_work_frac}")
+    print(f"Num Lps During Enumeration: {result.total_lps_enum}")
+    # count = shared.incorrect_overapprox_count.value
+    # t = round(shared.incorrect_overapprox_time.value, 3)
+    # print(f"Incorrect Overapproximation Time: {round(t/1000, 1)} sec (count: {count})")
+    print(f"Total Num Lps: {result.total_lps}")
+    print("")
+
+    if result.result_str == "timeout":
+        print(f"Timeout ({Settings.TIMEOUT}) reached during execution")
+    elif result.found_confirmed_counterexample.value:
+        print(f"Result: network is UNSAFE with confirmed counterexample in result.cinput and result.coutput")
+        if len(result.cinput) <= 10:
+            print(f"Input: {list(result.cinput)}")
+
+        if len(result.coutput) <= 10:
+            print(f"Output: {list(result.coutput)}")
+    elif result.found_counterexample.value:
+        print(f"Result: network seems UNSAFE, but not confirmed counterexamples (possible numerial " + \
+              "precision issues)")
+        # TODO: gradient descent -> adverserial attack to find counterexample
+    else:
+        print(f"Result: network is SAFE")  # safe subject to numerical accuracy issues
+
+    if result.polys:
+        print(f"Result contains {len(result.polys)} sets of polygons")
+
+    enum_ended_early = result.result_str not in ["none", "safe"]
+
+    if enum_ended_early and result.polys:
+        print(f"Warning: result polygons / stars is incomplete, since the enumeration ended early")
+
 
 def process_result(shared):
     'process a verification result'
@@ -271,41 +350,10 @@ def process_result(shared):
             stars = shared.finished_stars.value
             approx = shared.finished_approx_stars.value
             print(f"\nTotal Stars: {stars} ({stars - approx} exact, {approx} approx)")
-            
-            suffix = "" if shared.result.total_secs < 60 else f" ({round(shared.result.total_secs, 2)} sec)"
-            print(f"Runtime: {to_time_str(shared.result.total_secs)}{suffix}")
-            print(f"Completed work frac: {shared.finished_work_frac.value}")
-            print(f"Num Stars Copied Between Processes: {shared.num_offloaded.value}")
-            print(f"Num Lps During Enumeration: {shared.num_lps_enum.value}")
-            #count = shared.incorrect_overapprox_count.value
-            #t = round(shared.incorrect_overapprox_time.value, 3)
-            #print(f"Incorrect Overapproximation Time: {round(t/1000, 1)} sec (count: {count})")
-            print(f"Total Num Lps: {shared.num_lps.value}")
-            print("")
 
-            if shared.had_timeout.value == 1:
-                print(f"Timeout ({Settings.TIMEOUT}) reached during execution")
-            elif shared.result.found_confirmed_counterexample.value:
-                print(f"Result: network is UNSAFE with confirmed counterexample in result.cinput and result.coutput")
-                if len(shared.result.cinput) <= 10:
-                    print(f"Input: {list(shared.result.cinput)}")
-
-                if len(shared.result.coutput) <= 10:
-                    print(f"Output: {list(shared.result.coutput)}")
-            elif shared.result.found_counterexample.value:
-                print(f"Result: network seems UNSAFE, but not confirmed counterexamples (possible numerial " + \
-                      "precision issues)")
-                # TODO: gradient descent -> adverserial attack to find counterexample
-            elif shared.spec is not None:
-                print(f"Result: network is SAFE") # safe subject to numerical accuracy issues
-
-        if shared.result.polys:
-            print(f"Result contains {len(shared.result.polys)} sets of polygons")
-
-        enum_ended_early = shared.result.result_str not in ["none", "safe"]
-        
-        if enum_ended_early and shared.result.polys:
-            print(f"Warning: result polygons / stars is incomplete, since the enumeration ended early")
+            if shared.spec is not None:
+                print(f"Num Stars Copied Between Processes: {shared.num_offloaded.value}")
+                process_result_res(shared.result)
 
     # if unsafe, convert concrete inputs / outputs to regular lists
     shared.result.cinput = list(shared.result.cinput)
@@ -325,6 +373,7 @@ def process_result(shared):
     # save timers if requested
     for timer_name, count, secs in zip(Settings.RESULT_SAVE_TIMERS, shared.timer_counts, shared.timer_secs):
         shared.result.timers[timer_name] = (count, secs)
+
 
 class SharedState(Freezable):
     'shared computation state across processes'
@@ -512,12 +561,9 @@ class PrivateState(Freezable):
 
 
 def verify_another_network(network, star_states, spec):
-    import swiglpk as glpk
-
     res = []
 
-    cnt = 0
-    for star_state in star_states:
+    for star_state, cnt in zip(star_states, range(len(star_states))):
 
         print("\n\n{}th star: ".format(cnt))
 
@@ -525,10 +571,14 @@ def verify_another_network(network, star_states, spec):
             star_state.star.lpi.deserialize()
 
         assert isinstance(star_state.star.lpi.lp, type(glpk.glp_create_prob())), "lp has to be type SwigPyObject"
-        r_t = enumerate_network(star_state.star, network, spec, network_big=None, use_multithreading=Settings.multithreading_big, find_all_splits=False)
+        r_t = enumerate_network(star_state.star, network, spec, network_big=None,
+                                use_multithreading=Settings.multithreading_big, find_all_splits=False,
+                                reset_timers=False)
         res.append(r_t)
 
-        cnt += 1
+        if r_t.result_str != "safe":
+            break
+
     return res
 
 
