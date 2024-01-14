@@ -113,7 +113,8 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
         try_quick = Settings.TRY_QUICK_OVERAPPROX or Settings.SINGLE_SET
 
         if init_ss is not None and try_quick and spec is not None:
-            (proven_safe, concrete_io_tuple), violation_stars = try_quick_overapprox(init_ss, network, spec, start)
+            #(proven_safe, concrete_io_tuple), violation_stars = try_quick_overapprox(init_ss, network, spec, start)
+            proven_safe, concrete_io_tuple = try_quick_overapprox(init_ss, network, spec, start)
 
     if concrete_io_tuple is not None:
         # try_quick_overapprox found error
@@ -178,9 +179,10 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
                 Timers.toc('run workers')
 
             assert shared.more_work_queue.empty()
-            assert len(shared.done_work_list) > 0
 
             if network_big:
+
+                assert len(shared.done_work_list) > 0
 
                 print("{} splits".format(len(shared.done_work_list)))
                 #print("all splits: {}".format(shared.done_work_list))
@@ -550,11 +552,8 @@ def worker_func(worker_index, shared):
     w = Worker(shared, priv)
 
     try:
-        violation_stars, all_splits = w.main_loop()
-
-        shared.mutex.acquire()
-        shared.done_work_list += all_splits
-        shared.mutex.release()
+        #violation_stars, all_splits = w.main_loop()
+        w.main_loop()
 
         if worker_index == 0 and Settings.PRINT_OUTPUT:
             print("\n")

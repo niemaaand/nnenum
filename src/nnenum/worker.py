@@ -39,13 +39,13 @@ class Worker(Freezable):
 
         should_exit = False
 
-        violation_stars = []
-        work_done_list2 = []
+        #violation_stars = []
+        #work_done_list2 = []
 
         while not should_exit:
             # check if finished
             if self.priv.ss and self.priv.ss.is_finished(self.shared.network):
-                work_done_list2.append(self.priv.ss)
+                #work_done_list2.append(self.priv.ss)
                 self.finished_star() # this sets self.priv.ss to None
 
                 if self.priv.work_list and Settings.BRANCH_MODE in [Settings.BRANCH_EGO, Settings.BRANCH_EGO_LIGHT]:
@@ -57,8 +57,9 @@ class Worker(Freezable):
                 if self.priv.ss and not self.has_timeout():
                     first_overapprox = len(self.priv.ss.branch_tuples) == 0
 
-                    is_safe, vios = self.consider_overapprox(self.shared.find_all_splits)
-                    violation_stars += vios
+                    #is_safe, vios = self.consider_overapprox(self.shared.find_all_splits)
+                    #violation_stars += vios
+                    self.consider_overapprox()
 
                     if self.priv.worker_index == 0 and first_overapprox:
                         self.shared.finished_initial_overapprox.value = 1
@@ -110,25 +111,30 @@ class Worker(Freezable):
             should_exit = self.update_shared_variables()
             self.print_progress()
 
-        assert len(self.priv.work_list) == 0, "Private work still remaining."  # assert no more work
-        assert self.shared.more_work_queue.qsize() == 0, "Shared work still remaining."
+        if self.shared.find_all_splits:
+            assert len(self.priv.work_list) == 0, "Private work still remaining."  # assert no more work
+            assert self.shared.more_work_queue.qsize() == 0, "Shared work still remaining."
 
-        # remove None-elements from list
-        el_cnt = len(self.priv.work_done_list) - 1
-        while el_cnt >= 0:
-            if not self.priv.work_done_list[el_cnt]:
-                self.priv.work_done_list.pop(el_cnt)
+            # remove None-elements from list
+            el_cnt = len(self.priv.work_done_list) - 1
+            while el_cnt >= 0:
+                if not self.priv.work_done_list[el_cnt]:
+                    self.priv.work_done_list.pop(el_cnt)
 
-            el_cnt -= 1
+                el_cnt -= 1
 
-        assert len(self.priv.work_done_list) >= len(work_done_list2), "work_done_list not the same as work_done_list2"
+            #assert len(self.priv.work_done_list) >= len(work_done_list2), "work_done_list not the same as work_done_list2"
 
         Timers.tic('post_loop')
         self.update_final_stats()
         self.clear_remaining_work()
         Timers.toc('post_loop')
 
-        return violation_stars, self.priv.work_done_list
+        #return violation_stars, self.priv.work_done_list
+
+        self.shared.mutex.acquire()
+        self.shared.done_work_list += self.priv.work_done_list
+        self.shared.mutex.release()
 
     def add_branch_str(self, label):
         '''add the branch string to the tuples list (if we're saving it)'''
@@ -150,7 +156,7 @@ class Worker(Freezable):
         ss = self.priv.ss
         network = self.shared.network
         spec = self.shared.spec
-        violation_stars = []
+        #violation_stars = []
 
         assert ss.remaining_splits() > 0
 
@@ -235,9 +241,11 @@ class Worker(Freezable):
                     else:
                         otypes = Settings.OVERAPPROX_TYPES_NEAR_ROOT
 
-                    res, vios = do_overapprox_rounds(ss, network, spec, prerelu_sims, cancel_func_creator(find_all_splits), gen_limit,
-                                               overapprox_types=otypes, find_all_splits=find_all_splits)
-                    violation_stars += vios
+                    #res, vios = do_overapprox_rounds(ss, network, spec, prerelu_sims, cancel_func_creator(find_all_splits), gen_limit,
+                    #                           overapprox_types=otypes, find_all_splits=find_all_splits)
+                    #violation_stars += vios
+                    res = do_overapprox_rounds(ss, network, spec, prerelu_sims, cancel_func_creator(find_all_splits), gen_limit,
+                                               overapprox_types=otypes)
 
                     if res.concrete_io_tuple is not None:
                         if Settings.PRINT_OUTPUT:
@@ -298,7 +306,7 @@ class Worker(Freezable):
                     self.priv.shared_update_urgent = True
                     self.priv.fulfillment_requested_time = time.perf_counter()
 
-        return is_safe, violation_stars
+        return is_safe#, violation_stars
         
     def shuffle_work(self):
         'shuffle work'
