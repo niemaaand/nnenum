@@ -24,7 +24,6 @@ from src.nnenum.result import Result
 from src.nnenum.network import NeuralNetwork, nn_flatten, ReluLayer, FullyConnectedLayer
 from src.nnenum.worker import Worker
 from src.nnenum.overapprox import try_quick_overapprox
-from src.nnenum.lpplot import get_verts_nd
 from src.nnenum.prefilter import LpCanceledException
 
 def make_init_ss(init, network, spec, start_time):
@@ -71,7 +70,7 @@ def make_init_ss(init, network, spec, start_time):
 
     return ss
 
-def enumerate_network(init, network, spec=None, go_in_recursion=True, network_big=None):
+def enumerate_network(init, network, spec=None, network_big=None):
     '''enumerate the branches in the network
 
     init can either be a 2-d list or an lp_star or an lp_star_state
@@ -159,7 +158,7 @@ def enumerate_network(init, network, spec=None, go_in_recursion=True, network_bi
                     if Settings.PRINT_OUTPUT:
                         print("Running single-threaded")
 
-                    worker_func(0, shared, go_in_recursion=go_in_recursion, network_big=network_big, init=init)
+                    worker_func(0, shared)
                 else:
                     processes = []
 
@@ -167,7 +166,7 @@ def enumerate_network(init, network, spec=None, go_in_recursion=True, network_bi
                         print(f"Running in parallel with {num_workers} processes")
 
                     for index in range(Settings.NUM_PROCESSES):
-                        p = multiprocessing.Process(target=worker_func, args=(index, shared, go_in_recursion))
+                        p = multiprocessing.Process(target=worker_func, args=(index, shared))
                         p.start()
                         processes.append(p)
 
@@ -177,6 +176,44 @@ def enumerate_network(init, network, spec=None, go_in_recursion=True, network_bi
                 Timers.toc('run workers')
 
             assert shared.more_work_queue.empty()
+            assert len(shared.done_work_list) > 0
+
+            if network_big:
+
+                print("{} splits".format(len(shared.done_work_list)))
+                #print("all splits: {}".format(shared.done_work_list))
+
+                # deserialize
+                for ss in shared.done_work_list:
+                    if isinstance(ss.star.lpi.lp, tuple):
+                        ss.star.lpi.deserialize()
+
+                # there might remain some splits, because sub-network has already been proven save without performing split
+                # move star to last layer of network
+                for ss in shared.done_work_list:
+                    if ss.remaining_splits() > 0:
+                        n_layer = ss.cur_layer
+                        while n_layer < len(shared.network.layers):
+                            if not isinstance(shared.network.layers[n_layer], ReluLayer):
+                                shared.network.layers[n_layer].transform_star(ss.star)
+                            n_layer += 1
+                    # else: do nothing
+
+                # move stars to first layer of network
+                assert isinstance(init, (list, tuple, np.ndarray))
+                all_splits_first_layer = []
+                for ss in shared.done_work_list:
+                    ss_new = LpStarState(init, spec=shared.spec)
+                    ss_new.prefilter = ss.prefilter
+                    ss_new.star.input_bounds_witnesses = ss.star.input_bounds_witnesses
+                    ss_new.star.lpi = ss.star.lpi
+                    all_splits_first_layer.append(ss_new)
+                    pass
+
+                print("\nVerifying big network...\n")
+                another_res = verify_another_network(network_big, all_splits_first_layer, shared.spec)
+                print("\nVerification of big network done.\n")
+
 
             rv = shared.result
             rv.total_secs = time.perf_counter() - start
@@ -303,13 +340,12 @@ class SharedState(Freezable):
         # this lock should be used whenever modifying shared variables or consistency is needed,
         # except for the more_work_queue since that manages its own locks
         self.mutex = multiprocessing.Lock()
-        
+        self.done_work_list = list()
+
         if self.multithreaded:
             self.more_work_queue = multiprocessing.Queue()
-            self.done_work_queue = multiprocessing.Queue()
         else:
             self.more_work_queue = FakeQueue() # use deque for single-threaded, faster
-            self.done_work_queue = FakeQueue()
 
         # queue size is unreliable since multithreaded, use this instead
         self.stars_in_progress = multiprocessing.Value('i', 0)
@@ -487,14 +523,14 @@ def verify_another_network(network, star_states, spec):
             star_state.star.lpi.deserialize()
 
         assert isinstance(star_state.star.lpi.lp, type(glpk.glp_create_prob())), "lp has to be type SwigPyObject"
-        r_t = enumerate_network(star_state.star, network, spec, go_in_recursion=False)
+        r_t = enumerate_network(star_state.star, network, spec, network_big=None)
         res.append(r_t)
 
         cnt += 1
     return res
 
 
-def worker_func(worker_index, shared, go_in_recursion=True, network_big=None, init=None):
+def worker_func(worker_index, shared):
     'worker function during verification'
 
     np.seterr(all='raise', under=Settings.UNDERFLOW_BEHAVIOR) # raise exceptions on floating-point errors
@@ -516,42 +552,9 @@ def worker_func(worker_index, shared, go_in_recursion=True, network_big=None, in
     try:
         violation_stars, all_splits = w.main_loop()
 
-        print("{} splits".format(len(all_splits)))
-        print("all splits: {}".format(all_splits))
-
-        if go_in_recursion and network_big:
-            # deserialize
-            for ss in all_splits:
-                if isinstance(ss.star.lpi.lp, tuple):
-                    ss.star.lpi.deserialize()
-
-            # there might remain some splits, because sub-network has already been proven save without performing split
-            # move star to last layer of network
-            for ss in all_splits:
-                if ss.remaining_splits() > 0:
-                    n_layer = ss.cur_layer
-                    while n_layer < len(shared.network.layers):
-                        if not isinstance(shared.network.layers[n_layer], ReluLayer):
-                            shared.network.layers[n_layer].transform_star(ss.star)
-                        n_layer += 1
-                # else: do nothing
-
-            # move stars to first layer of network
-            assert isinstance(init, (list, tuple, np.ndarray))
-            all_splits_first_layer = []
-            for ss in all_splits:
-                ss_new = LpStarState(init, spec=shared.spec)
-                ss_new.prefilter = ss.prefilter
-                ss_new.star.input_bounds_witnesses = ss.star.input_bounds_witnesses
-                ss_new.star.lpi = ss.star.lpi
-                all_splits_first_layer.append(ss_new)
-                pass
-
-
-            print("\nVerifying big network...\n")
-            another_res = verify_another_network(network_big, all_splits_first_layer, shared.spec)
-            print("\nVerification of big network done.\n")
-
+        shared.mutex.acquire()
+        shared.done_work_list += all_splits
+        shared.mutex.release()
 
         if worker_index == 0 and Settings.PRINT_OUTPUT:
             print("\n")

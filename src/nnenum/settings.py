@@ -38,7 +38,7 @@ class Settings(metaclass=FreezableMeta):
         if num_cores > 2:
             num_cores = 2
         
-        cls.NUM_PROCESSES = 1#num_cores # use multiple cores
+        cls.NUM_PROCESSES = num_cores # use multiple cores
         cls.TIMEOUT = np.inf # verification timeout, in seconds (np.inf = no timeout)
 
         cls.SINGLE_SET = False # only do single-set overapproximation (no splitting)
