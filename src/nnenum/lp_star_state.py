@@ -62,7 +62,6 @@ class LpStarState(Freezable):
         if self.prefilter is not None and self.prefilter.output_bounds:
             self.prefilter.output_bounds.prefilter = None
 
-
     def __str__(self):
         split_str = "no splits"
         n = self.remaining_splits()

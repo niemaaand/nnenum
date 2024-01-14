@@ -4,6 +4,7 @@ Part of the enumeration process splits work among multiple worker processes. Thi
 Stanley Bak
 Feb 2020
 '''
+
 import math
 import random
 import time
@@ -37,14 +38,11 @@ class Worker(Freezable):
         'main worker loop'
 
         should_exit = False
-        cnt = 0
 
         violation_stars = []
         work_done_list2 = []
 
-        #try:
         while not should_exit:
-            cnt += 1
             # check if finished
             if self.priv.ss and self.priv.ss.is_finished(self.shared.network):
                 work_done_list2.append(self.priv.ss)
@@ -59,7 +57,7 @@ class Worker(Freezable):
                 if self.priv.ss and not self.has_timeout():
                     first_overapprox = len(self.priv.ss.branch_tuples) == 0
 
-                    is_safe, vios = self.consider_overapprox()
+                    is_safe, vios = self.consider_overapprox(self.shared.find_all_splits)
                     violation_stars += vios
 
                     if self.priv.worker_index == 0 and first_overapprox:
@@ -115,6 +113,7 @@ class Worker(Freezable):
         assert len(self.priv.work_list) == 0, "Private work still remaining."  # assert no more work
         assert self.shared.more_work_queue.qsize() == 0, "Shared work still remaining."
 
+        # remove None-elements from list
         el_cnt = len(self.priv.work_done_list) - 1
         while el_cnt >= 0:
             if not self.priv.work_done_list[el_cnt]:
@@ -129,9 +128,6 @@ class Worker(Freezable):
         self.clear_remaining_work()
         Timers.toc('post_loop')
 
-        #except Exception as e:
-        #    raise e
-
         return violation_stars, self.priv.work_done_list
 
     def add_branch_str(self, label):
@@ -140,7 +136,7 @@ class Worker(Freezable):
         if self.priv.branch_tuples_list is not None:
             self.priv.branch_tuples_list.append(f'{self.priv.ss.branch_str()} ({label})')
 
-    def consider_overapprox(self):
+    def consider_overapprox(self, find_all_splits=False):
         '''conditionally run overapprox analysis
 
         this may set self.priv.ss to None if overapprox is safe
@@ -171,25 +167,29 @@ class Worker(Freezable):
             # todo: experiment global timeout vs per-round timeout
             start = time.perf_counter()
 
-            def check_cancel_func():
-                'worker cancel func. can raise OverapproxCanceledException'
+            def cancel_func_creator(find_all_splits):
+                def check_cancel_func():
+                    'worker cancel func. can raise OverapproxCanceledException'
 
-                return
+                    if find_all_splits:
+                        return
 
-                if self.shared.should_exit.value:
-                    raise OverapproxCanceledException(f'shared.should_exit was true')
+                    if self.shared.should_exit.value:
+                        raise OverapproxCanceledException(f'shared.should_exit was true')
 
-                #if Settings.SPLIT_IF_IDLE and self.exists_idle_worker():
-                #    print("cancel idle")
-                #    raise OverapproxCanceledException('exists idle worker')
+                    #if Settings.SPLIT_IF_IDLE and self.exists_idle_worker():
+                    #    print("cancel idle")
+                    #    raise OverapproxCanceledException('exists idle worker')
 
-                now = time.perf_counter()
+                    now = time.perf_counter()
 
-                if now - self.priv.start_time > Settings.TIMEOUT:
-                    raise OverapproxCanceledException('timeout exceeded')
+                    if now - self.priv.start_time > Settings.TIMEOUT:
+                        raise OverapproxCanceledException('timeout exceeded')
 
-                if now - start > Settings.OVERAPPROX_LP_TIMEOUT:
-                    raise OverapproxCanceledException('lp timeout exceeded')
+                    if now - start > Settings.OVERAPPROX_LP_TIMEOUT:
+                        raise OverapproxCanceledException('lp timeout exceeded')
+
+                return check_cancel_func
 
             timer_name = 'do_overapprox_rounds'
             Timers.tic(timer_name)
@@ -207,10 +207,8 @@ class Worker(Freezable):
                     sim_in = ss.star.to_full_input(sim_in_flat)
 
                     # run through complete network in to out before counting it
-                    sim_out, branching_list = network.execute(sim_in, save_branching=True)
+                    sim_out = network.execute(sim_in)
                     sim_out = nn_flatten(sim_out)
-
-                    branch_list_in_branch_tuples(branching_list, ss.branch_tuples) # no idea about the meaning of this method
 
                     if spec.is_violation(sim_out):
                         concrete_io_tuple = [sim_in, sim_out]
@@ -237,8 +235,8 @@ class Worker(Freezable):
                     else:
                         otypes = Settings.OVERAPPROX_TYPES_NEAR_ROOT
 
-                    res, vios = do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func, gen_limit,
-                                               overapprox_types=otypes)
+                    res, vios = do_overapprox_rounds(ss, network, spec, prerelu_sims, cancel_func_creator(find_all_splits), gen_limit,
+                                               overapprox_types=otypes, find_all_splits=find_all_splits)
                     violation_stars += vios
 
                     if res.concrete_io_tuple is not None:
@@ -546,9 +544,9 @@ class Worker(Freezable):
 
         rv = self.shared.stars_in_progress.value == 0
 
-        # commented, to find all splits and to not stop after first counterexample is found
-        #if not rv:
-        #    rv = self.shared.result.found_confirmed_counterexample.value == 1
+        if not self.shared.find_all_splits:
+            if not rv:
+                rv = self.shared.result.found_confirmed_counterexample.value == 1
 
         if not rv and self.shared.had_exception.value == 1:
 
@@ -569,8 +567,9 @@ class Worker(Freezable):
     def clear_remaining_work(self):
         'sometimes we quit early, make sure the work queue is empty so processes exit as expected'
 
-        if not (len(self.priv.work_list) == 0 and self.shared.more_work_queue.qsize() == 0):
-            print("Clearing work. THIS SHOULD NOT HAPPEN!")
+        if self.shared.find_all_splits:
+            if not (len(self.priv.work_list) == 0 and self.shared.more_work_queue.qsize() == 0):
+                print("Clearing work. THIS SHOULD NOT HAPPEN!")
 
         # force an update
         self.priv.shared_update_urgent = True

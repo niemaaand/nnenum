@@ -91,7 +91,7 @@ def make_prerelu_sims(ss, network):
 
     return rv
 
-def check_round(ss, sets, spec_arg, check_cancel_func=None):
+def check_round(ss, sets, spec_arg, check_cancel_func=None, find_all_splits=False):
     '''check overapproximation result of one round against spec
 
     this may modify ss.safe_spec_list is part of the spec is proven as safe
@@ -140,9 +140,10 @@ def check_round(ss, sets, spec_arg, check_cancel_func=None):
                 unsafe_violation_stars += violation_stars
                 unsafe_violation_indices.append(i)
 
-            # just need one violation star
-            # break
-            ########## I want all violation stars######
+            if not find_all_splits:
+                # just need one violation star
+                break
+            #else: do nothing -  I want all violation stars
 
     Timers.toc('overapprox_check_round')
 
@@ -181,7 +182,7 @@ class RoundsResult:
 
         return rv
 
-def test_abstract_violation(dims, vstars, vindices, network, spec):
+def test_abstract_violation(dims, vstars, vindices, network, spec, find_all_splits=False):
     '''test concrete executions for specification violations
 
     returns abstract_ios, (concrete_io_tuple or None)
@@ -245,18 +246,18 @@ def test_abstract_violation(dims, vstars, vindices, network, spec):
                     print("Found unsafe from second concrete execution of abstract counterexample")
 
                 concrete_io_tuple = (full_input, flat_output)
-                #break #############TODO:  remove break?
+                if not find_all_splits:
+                    break
 
-        #if concrete_io_tuple is not None:
-            #break
-        #    pass
+                    if concrete_io_tuple is not None:
+                        break
 
     Timers.toc('try_abstract_violation')
 
     return abstract_ios, concrete_io_tuple
         
 def do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func=None, gen_limit=np.inf,
-                         overapprox_types=None):
+                         overapprox_types=None, find_all_splits=False):
     '''do the multi-round overapproximation analysis
 
     returns an instance of RoundsResult:
@@ -312,7 +313,7 @@ def do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func=None
         rv.round_ms.append(diff * 1000)
 
         start = time.perf_counter()
-        rv.is_safe, vios, violation_indices = check_round(ss, sets, spec, check_cancel_func)
+        rv.is_safe, vios, violation_indices = check_round(ss, sets, spec, check_cancel_func, find_all_splits)
         violation_stars += vios
 
         if rv.is_safe:
@@ -321,7 +322,7 @@ def do_overapprox_rounds(ss, network, spec, prerelu_sims, check_cancel_func=None
         if violation_stars:
             dims = ss.star.lpi.get_num_cols()
                 
-            _abstract_ios, rv.concrete_io_tuple = test_abstract_violation(dims, violation_stars, violation_indices, network, spec)
+            _abstract_ios, rv.concrete_io_tuple = test_abstract_violation(dims, violation_stars, violation_indices, network, spec, find_all_splits=find_all_splits)
 
         if first_round:
             first_round = False

@@ -39,6 +39,10 @@ class Settings(metaclass=FreezableMeta):
             num_cores = 2
         
         cls.NUM_PROCESSES = num_cores # use multiple cores
+
+        cls.multithreading_small = True # Set this to false, if network is not loaded with "optimized"-method. Otherwise code will break due to onnx-runtime.
+        cls.multithreading_big = True # same as above
+
         cls.TIMEOUT = np.inf # verification timeout, in seconds (np.inf = no timeout)
 
         cls.SINGLE_SET = False # only do single-set overapproximation (no splitting)
@@ -91,13 +95,12 @@ class Settings(metaclass=FreezableMeta):
 
         cls.SAVE_BRANCH_TUPLES_FILENAME = None # TODO: ATTENTION: cannot be used with PRINT_OUTPUT=True # "branch_tuple_files.txt"
         cls.SAVE_BRANCH_TUPLES_TIMES = True # when saving branch tuples, also include runtimes
-        cls.BRANCH_MODE = cls.BRANCH_OVERAPPROX  # cls.BRANCH_EXACT
+        cls.BRANCH_MODE = cls.BRANCH_OVERAPPROX
         cls.PRINT_BRANCH_TUPLES = True
 
-        cls.TRY_QUICK_OVERAPPROX = True  #False
-        cls.QUICK_OVERAPPROX_TYPES = [['zono.area'], #
-                                      ['zono.area', 'zono.ybloat', 'zono.interval'] #
-                                    ]
+        cls.TRY_QUICK_OVERAPPROX = True
+        cls.QUICK_OVERAPPROX_TYPES = [['zono.area'],
+                                      ['zono.area', 'zono.ybloat', 'zono.interval']]
         cls.PRINT_OVERAPPROX_OUTPUT = True # print progress on first overapprox
 
         # one_norm is especially good at finding counterexamples

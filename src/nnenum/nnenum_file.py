@@ -128,6 +128,7 @@ def main():
     except:
         # cannot do optimized load due to unsupported layers
         network = load_onnx_network(onnx_filename)
+        Settings.multithreading_small = False
 
     if os.path.exists(onnx_filename_big):
         try:
@@ -135,6 +136,7 @@ def main():
         except:
             # cannot do optimized load due to unsupported layers
             network_big = load_onnx_network(onnx_filename_big)
+            Settings.multithreading_big = False
     else:
         network_big = None
 
@@ -165,7 +167,8 @@ def main():
 
             Settings.TIMEOUT = timeout
 
-        res = enumerate_network(init_box, network, spec, network_big=network_big)
+        # Assumption: I want all splits, if there is another (bigger) network to be verified by using the splits of the current (smaller) network.
+        res = enumerate_network(init_box, network, spec, network_big=network_big, use_multithreading=Settings.multithreading_small, find_all_splits=bool(network_big))
         result_str = res.result_str
 
         if timeout is not None:
@@ -176,7 +179,7 @@ def main():
             break
 
     # rename for VNNCOMP21:
-        
+
     if result_str == "safe":
         result_str = "holds"
     elif "unsafe" in result_str:
@@ -185,7 +188,7 @@ def main():
     if outfile is not None:
         with open(outfile, 'w') as f:
             f.write(result_str)
-            
+
     #print(result_str)
 
     if result_str == 'error':

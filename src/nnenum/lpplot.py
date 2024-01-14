@@ -22,10 +22,6 @@ def get_verts_nd(lpi, dims):
     assert isinstance(dims, list), f"unsupported dims type: {type(dims)}"
     dim_list = dims
 
-    # lpi.dims = all_splits[0].star.a_mat.shape()
-    # lpi.dims = len(col_bounds)
-
-
     for dim in dim_list:
         assert dim < lpi.dims(), f"lpi has {lpi.dims()} dims, but requested dim_list was {dim_list}"
 

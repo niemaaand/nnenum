@@ -13,17 +13,16 @@ import traceback
 
 import numpy as np
 
-from src.nnenum.onnx_network import LinearOnnxSubnetworkLayer
-from src.nnenum.specification import DisjunctiveSpec
 from src.nnenum.timerutil import Timers
 from src.nnenum.lp_star import LpStar
 from src.nnenum.lp_star_state import LpStarState
 from src.nnenum.util import Freezable, FakeQueue, to_time_str, check_openblas_threads
 from src.nnenum.settings import Settings
 from src.nnenum.result import Result
-from src.nnenum.network import NeuralNetwork, nn_flatten, ReluLayer, FullyConnectedLayer
+from src.nnenum.network import NeuralNetwork, ReluLayer
 from src.nnenum.worker import Worker
 from src.nnenum.overapprox import try_quick_overapprox
+
 from src.nnenum.prefilter import LpCanceledException
 
 def make_init_ss(init, network, spec, start_time):
@@ -70,7 +69,7 @@ def make_init_ss(init, network, spec, start_time):
 
     return ss
 
-def enumerate_network(init, network, spec=None, network_big=None):
+def enumerate_network(init, network, spec=None, network_big=None, use_multithreading=True, find_all_splits=False):
     '''enumerate the branches in the network
 
     init can either be a 2-d list or an lp_star or an lp_star_state
@@ -146,9 +145,12 @@ def enumerate_network(init, network, spec=None, network_big=None):
             rv = Result(network, quick=True)
             rv.result_str = 'none'
         else:
+            if not use_multithreading:
+                Settings.NUM_PROCESSES = 1
+
             num_workers = 1 if Settings.NUM_PROCESSES < 1 else Settings.NUM_PROCESSES
 
-            shared = SharedState(network, spec, num_workers, start)
+            shared = SharedState(network, spec, num_workers, start, find_all_splits)
             shared.push_init(init_ss)
 
             if shared.result.result_str != 'safe': # easy specs can be proven safe in push_init()
@@ -266,7 +268,7 @@ def process_result(shared):
         else:
             stars = shared.finished_stars.value
             approx = shared.finished_approx_stars.value
-            print("\nTotal Stars: {} ({} exact, {} approx)".format(stars, stars - approx, approx))
+            print(f"\nTotal Stars: {stars} ({stars - approx} exact, {approx} approx)")
             
             suffix = "" if shared.result.total_secs < 60 else f" ({round(shared.result.total_secs, 2)} sec)"
             print(f"Runtime: {to_time_str(shared.result.total_secs)}{suffix}")
@@ -325,7 +327,7 @@ def process_result(shared):
 class SharedState(Freezable):
     'shared computation state across processes'
 
-    def __init__(self, network, spec, num_workers, start_time):
+    def __init__(self, network, spec, num_workers, start_time, find_all_splits=False):
         assert isinstance(network, NeuralNetwork)
         
         # process-local copies
@@ -333,6 +335,7 @@ class SharedState(Freezable):
         self.spec = spec
         self.num_workers = num_workers
         self.multithreaded = num_workers > 1
+        self.find_all_splits = find_all_splits
 
         self.start_time = start_time
 
@@ -434,9 +437,6 @@ class SharedState(Freezable):
         except queue.Empty:
             rv = None
 
-        #if rv:
-        #    self.done_work_queue.put(rv)
-
         Timers.toc('get_global_queue')
 
         return rv
@@ -523,7 +523,7 @@ def verify_another_network(network, star_states, spec):
             star_state.star.lpi.deserialize()
 
         assert isinstance(star_state.star.lpi.lp, type(glpk.glp_create_prob())), "lp has to be type SwigPyObject"
-        r_t = enumerate_network(star_state.star, network, spec, network_big=None)
+        r_t = enumerate_network(star_state.star, network, spec, network_big=None, use_multithreading=Settings.multithreading_big, find_all_splits=False)
         res.append(r_t)
 
         cnt += 1
