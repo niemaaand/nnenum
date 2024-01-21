@@ -43,6 +43,8 @@ class Result(Freezable):
         ##### assigned if cls.RESULT_SAVE_TIMERS is nonempty. Map of timer_name -> total_seconds
         self.timers = {}
 
+        self.n_split_fractions = 0
+
         if not quick:
             ###### assigned if Settings.RESULT_SAVE_POLYS = True. Each entry is polygon (list of 2-d points), ######
             self.polys = Result.manager.list()

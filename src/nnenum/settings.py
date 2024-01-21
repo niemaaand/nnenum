@@ -56,7 +56,7 @@ class Settings(metaclass=FreezableMeta):
 
         cls.RESULT_SAVE_TIMERS = [] # list of timers to record in Result.timers; TIMING_STATS must be True
 
-        cls.FIND_CONCRETE_COUNTEREXAMPLES = False # should we try to find concrete counterexamples if spec violated?
+        cls.FIND_CONCRETE_COUNTEREXAMPLES = True # should we try to find concrete counterexamples if spec violated?
 
         #########################
         ### advanced settings ###
@@ -82,8 +82,7 @@ class Settings(metaclass=FreezableMeta):
         # the types of overapproximation to use in each round
         cls.OVERAPPROX_TYPES = [#['zono.area'],
                                 #['zono.area', 'zono.ybloat', 'zono.interval'],
-                                ['zono.area', 'zono.ybloat', 'zono.interval',
-                                 'star.lp']]
+                                ['zono.area', 'zono.ybloat', 'zono.interval', 'star.lp']]
 
         cls.OVERAPPROX_NEAR_ROOT_MAX_SPLITS = 2
         cls.OVERAPPROX_TYPES_NEAR_ROOT = cls.OVERAPPROX_TYPES
@@ -91,7 +90,7 @@ class Settings(metaclass=FreezableMeta):
         cls.OVERAPPROX_GEN_LIMIT_MULTIPLIER = 1.5 # don't try approx star if multizono.gens > THIS * last_safe_gens
         cls.OVERAPPROX_MIN_GEN_LIMIT = 50 # minimum generators to use as cap
         cls.OVERAPPROX_LP_TIMEOUT = 1.0 # timeout for LP part of overapproximation, use np.inf for unbounded
-        cls.OVERAPPROX_BOTH_BOUNDS = True # should overapprox star method compute both bounds or just reject branches?
+        cls.OVERAPPROX_BOTH_BOUNDS = False # should overapprox star method compute both bounds or just reject branches?
 
         cls.SAVE_BRANCH_TUPLES_FILENAME = None # TODO: ATTENTION: cannot be used with PRINT_OUTPUT=True # "branch_tuple_files.txt"
         cls.SAVE_BRANCH_TUPLES_TIMES = True # when saving branch tuples, also include runtimes

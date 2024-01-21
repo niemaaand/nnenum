@@ -130,13 +130,17 @@ def main():
         network = load_onnx_network(onnx_filename)
         Settings.multithreading_small = False
 
-    if os.path.exists(onnx_filename_big):
-        try:
-            network_big = load_onnx_network_optimized(onnx_filename_big)
-        except:
-            # cannot do optimized load due to unsupported layers
-            network_big = load_onnx_network(onnx_filename_big)
-            Settings.multithreading_big = False
+    if onnx_filename_big:
+        if os.path.exists(onnx_filename_big):
+            try:
+                network_big = load_onnx_network_optimized(onnx_filename_big)
+            except:
+                # cannot do optimized load due to unsupported layers
+                network_big = load_onnx_network(onnx_filename_big)
+                Settings.multithreading_big = False
+        else:
+            print("File does not exist: {}".format(onnx_filename_big))
+            network_big = None
     else:
         network_big = None
 
@@ -194,4 +198,5 @@ def main():
     if result_str == 'error':
         sys.exit(Result.results.index('error'))
 
+    return res
 

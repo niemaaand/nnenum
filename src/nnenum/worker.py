@@ -111,7 +111,7 @@ class Worker(Freezable):
             should_exit = self.update_shared_variables()
             self.print_progress()
 
-        if self.shared.find_all_splits:
+        if self.shared.find_all_splits and not self.shared.had_timeout.value:
             assert len(self.priv.work_list) == 0, "Private work still remaining."  # assert no more work
             assert self.shared.more_work_queue.qsize() == 0, "Shared work still remaining."
 
@@ -177,8 +177,8 @@ class Worker(Freezable):
                 def check_cancel_func():
                     'worker cancel func. can raise OverapproxCanceledException'
 
-                    if find_all_splits:
-                        return
+                    #if find_all_splits:
+                    #    return
 
                     if self.shared.should_exit.value:
                         raise OverapproxCanceledException(f'shared.should_exit was true')
@@ -576,7 +576,9 @@ class Worker(Freezable):
         'sometimes we quit early, make sure the work queue is empty so processes exit as expected'
 
         if self.shared.find_all_splits:
-            if not (len(self.priv.work_list) == 0 and self.shared.more_work_queue.qsize() == 0):
+            if self.shared.had_timeout.value:
+                print("Clearing work because of timeout.")
+            elif not (len(self.priv.work_list) == 0 and self.shared.more_work_queue.qsize() == 0):
                 print("Clearing work. THIS SHOULD NOT HAPPEN!")
 
         # force an update
@@ -665,7 +667,7 @@ class Worker(Freezable):
                     # min item is heaviest (closest to root)
                     # heaviest will be first item on list
                     new_ss = self.priv.work_list.pop(0)
-                    self.priv.work_done_list.append(new_ss)
+                    self.priv.work_done_list.append(new_ss) # TODO: might be unnecessary here
 
                     self.priv.num_offloaded += 1
                     num_zeros -= 1

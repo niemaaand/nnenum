@@ -1,0 +1,5 @@
+{
+  "onnx/mnist-net_256x2.onnx": "onnx_small/2024_01_13_15_47_33_options.json_Options__0.8756420612335205_f1Score__0_Epoch.onnx",
+  "onnx/mnist-net_256x4.onnx": "onnx_small/2024_01_13_15_47_33_options.json_Options__0.8756420612335205_f1Score__0_Epoch.onnx",
+  "onnx/mnist-net_256x6.onnx": "onnx_small/2024_01_13_15_47_33_options.json_Options__0.8756420612335205_f1Score__0_Epoch.onnx"
+}

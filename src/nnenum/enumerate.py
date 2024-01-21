@@ -183,8 +183,9 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
             assert shared.more_work_queue.empty()
 
             shared.result.total_secs = time.perf_counter() - start
+            shared.result.n_split_fractions = len(shared.done_work_list)
 
-            if network_big:
+            if network_big and not shared.had_timeout.value:
 
                 assert len(shared.done_work_list) > 0
 
@@ -234,6 +235,7 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
 
                 new_overall_result.total_secs = time.perf_counter() - start
                 new_overall_result.timers = shared.result.timers
+                new_overall_result.n_split_fractions = shared.result.n_split_fractions
 
                 new_overall_result.cinput = overall_result.cinput
                 new_overall_result.coutput = overall_result.coutput
@@ -255,6 +257,8 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
                     new_finished_stars += finished_stars
                     new_unfinished_stars += unfinished_stars
                     new_finished_work_frac += (finished_work_frac if cnt == len(results_of_big_network) - 1 else 1) * shared.done_work_list[cnt].work_frac
+
+                    new_overall_result.n_split_fractions += r.n_split_fractions - 1  # subtract 1 because initial split
 
                 new_overall_result.progress_tuple = (new_finished_stars, new_unfinished_stars, new_finished_work_frac)
 
