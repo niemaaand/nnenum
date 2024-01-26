@@ -36,12 +36,13 @@ class Settings(metaclass=FreezableMeta):
 
         # TODO:
         if num_cores > 2:
-            num_cores = 2
+            num_cores = 1
         
         cls.NUM_PROCESSES = num_cores # use multiple cores
 
         cls.multithreading_small = True # Set this to false, if network is not loaded with "optimized"-method. Otherwise code will break due to onnx-runtime.
         cls.multithreading_big = True # same as above
+        cls.use_concrete_counterexamples_for_falsification = True
 
         cls.TIMEOUT = np.inf # verification timeout, in seconds (np.inf = no timeout)
 

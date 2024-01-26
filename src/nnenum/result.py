@@ -45,6 +45,12 @@ class Result(Freezable):
 
         self.n_split_fractions = 0
 
+        self._nn = nn
+        self.coutput_array = list()
+        self.cinput_array = list()
+        self.counterexample_oberservers = list()
+        self.big_network_proven_wrong = multiprocessing.Value('i', 0) # TODO: stop if True
+
         if not quick:
             ###### assigned if Settings.RESULT_SAVE_POLYS = True. Each entry is polygon (list of 2-d points), ######
             self.polys = Result.manager.list()
@@ -70,3 +76,20 @@ class Result(Freezable):
             self.coutput = None
 
         self.freeze_attrs()
+
+    def get_new_cinput(self):
+        return multiprocessing.Array('d', self._nn.get_num_inputs())
+
+    def get_new_coutput(self):
+        return multiprocessing.Array('d', self._nn.get_num_outputs())
+
+    def add_counterexample(self, cinput, coutput):
+        self.cinput_array.append(cinput)
+        self.cinput = cinput
+        self.coutput_array.append(coutput)
+        self.coutput = coutput
+
+        for co in self.counterexample_oberservers:
+            co(cinput, coutput)
+
+

@@ -252,6 +252,7 @@ class Worker(Freezable):
                             print("\nviolation star found a confirmed counterexample.")
                             print(f"\nUnsafe Base Branch: {self.priv.ss.branch_str()} (Mode: {Settings.BRANCH_MODE})")
 
+                        # append concrete_io_tuple to global list (push through big network) -> done in self.found_unsafe
                         self.found_unsafe(res.concrete_io_tuple)
                         self.add_branch_str('CONCRETE UNSAFE')
                     else:
@@ -777,13 +778,19 @@ class Worker(Freezable):
 
             if concrete_io_tuple is not None:
                 self.shared.result.found_confirmed_counterexample.value = 1
-                self.shared.should_exit.value = True
 
+                if not self.shared.find_all_splits: # TODO: verify code? Do we go on to next split, without this line?
+                    self.shared.should_exit.value = True
+
+                _cinput = self.shared.result.get_new_cinput()
                 for i, val in enumerate(concrete_io_tuple[0]):
-                    self.shared.result.cinput[i] = val
+                    _cinput[i] = val
 
+                _coutput = self.shared.result.get_new_coutput()
                 for i, val in enumerate(concrete_io_tuple[1]):
-                    self.shared.result.coutput[i] = val
+                    _coutput[i] = val
+
+                self.shared.result.add_counterexample(_cinput, _coutput)
 
             self.shared.mutex.release()
             Timers.toc('update_shared')

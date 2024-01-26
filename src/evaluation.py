@@ -2,6 +2,7 @@ import csv
 import json
 import os
 import sys
+from enum import Enum
 
 from src.nnenum import nnenum_file
 from src.nnenum.result import Result
@@ -47,19 +48,35 @@ def get_all_instances(path):
 
 
 class CSVResultBuilder:
+
+    class Rows(Enum):
+        BIG_ONNX = "big onnx"
+        SMALL_ONNX = "small onnx"
+        VNNLIB = "vnnlib"
+        DURATION_BIG_ONLY = "duration (big only)"
+        DURATION_SMALL_AND_BIG = "duration (small and big)"
+        CLASSIFICATION_BIG = "classification (big only)"
+        CLASSIFICATION_SMALL_AND_BIG = "classification (small and big)"
+        N_SPLITS_BIG_ONLY = "number of splits (big only)"
+        N_SPLITS_SMALL_AND_BIG = "number of splits (small and big)"
+        FALSIFICATION_BY_COUNTEREXAMPLE = "falsification by counterexample"
+
     @staticmethod
     def build_csv_row(instance, result_big, result_small_and_big):
         return [instance.big_onnx, instance.small_onnx, instance.vnnlib,
                 result_big.total_secs, result_small_and_big.total_secs if result_small_and_big else "",
                 result_big.result_str, result_small_and_big.result_str if result_small_and_big else "",
-                result_big.n_split_fractions, result_small_and_big.n_split_fractions if result_small_and_big else ""]
+                result_big.n_split_fractions, result_small_and_big.n_split_fractions if result_small_and_big else "",
+                result_small_and_big.big_network_proven_wrong.value]
 
     @staticmethod
     def build_headings():
-        return ["big onnx", "small onnx", "vnnlib",
-                "duration (big only)", "duration (small and big)",
-                "classification (big only)", "classification (small and big)",
-                "number of splits (big only)", "number of splits (small and big)"]
+        Rows = CSVResultBuilder.Rows
+        return [Rows.BIG_ONNX.value, Rows.SMALL_ONNX.value, Rows.VNNLIB.value,
+                Rows.DURATION_BIG_ONLY.value, Rows.DURATION_SMALL_AND_BIG.value,
+                Rows.CLASSIFICATION_BIG.value, Rows.CLASSIFICATION_SMALL_AND_BIG.value,
+                Rows.N_SPLITS_BIG_ONLY.value, Rows.N_SPLITS_SMALL_AND_BIG.value,
+                Rows.FALSIFICATION_BY_COUNTEREXAMPLE.value]
 
     @staticmethod
     def get_duration_big_only(row):
@@ -88,6 +105,9 @@ def run_enumerations(benchmark_path, res_file_path):
     with open(res_file_path, "w", newline="") as outfile:
         csv_writer = csv.writer(outfile, delimiter=",")
         csv_writer.writerow(CSVResultBuilder.build_headings())
+
+    first_run = True  # warm up system
+    instances.insert(0, instances[0])
 
     for instance in instances:
 
@@ -122,12 +142,14 @@ def run_enumerations(benchmark_path, res_file_path):
             else:
                 raise NotImplementedError()
 
-        results.append((result_big_onnx, result_small_and_big_onnx))
+        if not first_run:
+            results.append((result_big_onnx, result_small_and_big_onnx))
 
-        with open(res_file_path, "a", newline="") as outfile:
-            csv_writer = csv.writer(outfile, delimiter=",")
-            csv_writer.writerow(CSVResultBuilder.build_csv_row(instance, result_big_onnx, result_small_and_big_onnx))
+            with open(res_file_path, "a", newline="") as outfile:
+                csv_writer = csv.writer(outfile, delimiter=",")
+                csv_writer.writerow(CSVResultBuilder.build_csv_row(instance, result_big_onnx, result_small_and_big_onnx))
 
+        first_run = False
 
 def evaluate(eval_path):
     successful_results = ["safe", "unsafe (unconfirmed)", "unsafe"]
@@ -138,8 +160,13 @@ def evaluate(eval_path):
         csv_reader = csv.reader(csvfile, delimiter=",")
 
         for row in csv_reader:
-            if CSVResultBuilder.get_classification_big_only(row) in successful_results or \
-                    CSVResultBuilder.get_classification_combined(row) in successful_results:
+            big_only_successful = CSVResultBuilder.get_classification_big_only(row) in successful_results
+            small_and_big_successful = CSVResultBuilder.get_classification_combined(row) in successful_results
+            if big_only_successful or small_and_big_successful:
+                if big_only_successful and small_and_big_successful:
+                    if CSVResultBuilder.get_classification_big_only(row) != CSVResultBuilder.get_classification_combined(row):
+                        print("Different classification results in row number: {}".format(csv_reader.line_num))
+
                 dur_big_only = CSVResultBuilder.get_duration_big_only(row)
                 dur_small_and_big = CSVResultBuilder.get_duration_combined(row)
 

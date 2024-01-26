@@ -172,7 +172,9 @@ def main():
             Settings.TIMEOUT = timeout
 
         # Assumption: I want all splits, if there is another (bigger) network to be verified by using the splits of the current (smaller) network.
-        res = enumerate_network(init_box, network, spec, network_big=network_big, use_multithreading=Settings.multithreading_small, find_all_splits=bool(network_big))
+        res = enumerate_network(init_box, network, spec, network_big=network_big,
+                                use_multithreading=Settings.multithreading_small, find_all_splits=bool(network_big),
+                                use_concrete_counterexamples_for_falsification=Settings.use_concrete_counterexamples_for_falsification)
         result_str = res.result_str
 
         if timeout is not None:

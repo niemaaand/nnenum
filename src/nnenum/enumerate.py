@@ -5,7 +5,7 @@ Enmeration functions for Neural Network Analysis
 
 the method you probably want to use is enumerate_network()
 '''
-
+import math
 import multiprocessing
 import time
 import queue
@@ -70,7 +70,36 @@ def make_init_ss(init, network, spec, start_time):
 
     return ss
 
-def enumerate_network(init, network, spec=None, network_big=None, use_multithreading=True, find_all_splits=False, reset_timers=True):
+
+def check_counterexample_in_big_network_creator(big_network: NeuralNetwork, shared_state):
+    def check_counterexample_in_big_network(cinput, coutput):
+
+        if big_network:
+            dtype = None
+            for layer in big_network.layers:
+                if hasattr(layer, "dtype"):
+                    dtype = layer.dtype
+                    break
+
+            if type(cinput) != np.ndarray:
+                cinput = np.array(list(cinput), dtype=dtype)
+
+            big_output = big_network.execute(cinput)
+            if shared_state.spec.is_violation(big_output):
+                print("\nViolation from small network is violation of big network, too:")
+                shared_state.result.big_network_proven_wrong.value = True
+                shared_state.should_exit.value = True  # TODO: verify this stops verification
+                print_inoutput(cinput, big_output, math.inf)
+                print("")
+            else:
+                print("Violation from small network is NOT violation of big network. ")
+        # else: do nothing
+
+    return check_counterexample_in_big_network
+
+
+def enumerate_network(init, network, spec=None, network_big=None, use_multithreading=True, find_all_splits=False,
+                      reset_timers=True, use_concrete_counterexamples_for_falsification=False):
     '''enumerate the branches in the network
 
     init can either be a 2-d list or an lp_star or an lp_star_state
@@ -107,7 +136,7 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
 
     init_ss = None
     concrete_io_tuple = None
-    
+
     if time.perf_counter() - start < Settings.TIMEOUT:
         init_ss = make_init_ss(init, network, spec, start) # returns None if timeout
 
@@ -126,8 +155,9 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
         rv = Result(network, quick=True)
         rv.result_str = 'unsafe'
 
-        rv.cinput = concrete_io_tuple[0]
-        rv.coutput = concrete_io_tuple[1]
+        #rv.cinput = concrete_io_tuple[0]
+        #rv.coutput = concrete_io_tuple[1]
+        rv.add_counterexample(concrete_io_tuple[0], concrete_io_tuple[1])
     elif init_ss is None or time.perf_counter() - start > Settings.TIMEOUT:
         if Settings.PRINT_OUTPUT:
             print(f"Timeout before enumerate, init_ss is None: {init_ss is None}")
@@ -155,6 +185,10 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
 
             shared = SharedState(network, spec, num_workers, start, find_all_splits)
             shared.push_init(init_ss)
+
+            if use_concrete_counterexamples_for_falsification:
+                concrete_counterexample_added_callback = check_counterexample_in_big_network_creator(network_big, shared)
+                shared.result.counterexample_oberservers.append(concrete_counterexample_added_callback)
 
             if shared.result.result_str != 'safe': # easy specs can be proven safe in push_init()
                 Timers.tic('run workers')
@@ -185,7 +219,7 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
             shared.result.total_secs = time.perf_counter() - start
             shared.result.n_split_fractions = len(shared.done_work_list)
 
-            if network_big and not shared.had_timeout.value:
+            if network_big and not shared.had_timeout.value and not shared.result.big_network_proven_wrong.value:
 
                 assert len(shared.done_work_list) > 0
 
@@ -239,6 +273,8 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
 
                 new_overall_result.cinput = overall_result.cinput
                 new_overall_result.coutput = overall_result.coutput
+                new_overall_result.cinput_array = overall_result.cinput_array
+                new_overall_result.coutput_array = overall_result.coutput_array
                 new_overall_result.found_confirmed_counterexample = overall_result.found_confirmed_counterexample
                 new_overall_result.found_counterexample = overall_result.found_counterexample
                 new_overall_result.manager = overall_result.manager
@@ -280,6 +316,14 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
     return rv
 
 
+def print_inoutput(cinput, coutput, max_length=10):
+    if len(cinput) <= max_length:
+        print(f"Input: {list(cinput)}")
+
+    if len(coutput) <= max_length:
+        print(f"Output: {list(coutput)}")
+
+
 def process_result_res(result: Result):
     (finished_stars, unfinished_stars, finished_work_frac) = result.progress_tuple
 
@@ -297,11 +341,7 @@ def process_result_res(result: Result):
         print(f"Timeout ({Settings.TIMEOUT}) reached during execution")
     elif result.found_confirmed_counterexample.value:
         print(f"Result: network is UNSAFE with confirmed counterexample in result.cinput and result.coutput")
-        if len(result.cinput) <= 10:
-            print(f"Input: {list(result.cinput)}")
-
-        if len(result.coutput) <= 10:
-            print(f"Output: {list(result.coutput)}")
+        print_inoutput(result.cinput, result.coutput)
     elif result.found_counterexample.value:
         print(f"Result: network seems UNSAFE, but not confirmed counterexamples (possible numerial " + \
               "precision issues)")
