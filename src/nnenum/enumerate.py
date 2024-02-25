@@ -216,92 +216,122 @@ def enumerate_network(init, network, spec=None, network_big=None, use_multithrea
 
             assert shared.more_work_queue.empty()
 
-            shared.result.total_secs = time.perf_counter() - start
+            shared.result.small_only_secs = time.perf_counter() - start
             shared.result.n_split_fractions = len(shared.done_work_list)
 
-            if network_big and not shared.had_timeout.value and not shared.result.big_network_proven_wrong.value:
+            try:
 
-                assert len(shared.done_work_list) > 0
+                if network_big and not shared.had_timeout.value and not shared.result.big_network_proven_wrong.value:
 
-                print("{} splits".format(len(shared.done_work_list)))
-                #print("all splits: {}".format(shared.done_work_list))
+                    assert len(shared.done_work_list) > 0
 
-                # deserialize
-                for ss in shared.done_work_list:
-                    if isinstance(ss.star.lpi.lp, tuple):
-                        ss.star.lpi.deserialize()
+                    print("{} splits".format(len(shared.done_work_list)))
+                    #print("all splits: {}".format(shared.done_work_list))
 
-                # there might remain some splits, because sub-network has already been proven save without performing split
-                # move star to last layer of network
-                for ss in shared.done_work_list:
-                    if ss.remaining_splits() > 0:
-                        n_layer = ss.cur_layer
-                        while n_layer < len(shared.network.layers):
-                            if not isinstance(shared.network.layers[n_layer], ReluLayer):
-                                shared.network.layers[n_layer].transform_star(ss.star)
-                            n_layer += 1
-                    # else: do nothing
+                    # deserialize
+                    for ss in shared.done_work_list:
+                        if isinstance(ss.star.lpi.lp, tuple):
+                            ss.star.lpi.deserialize()
 
-                # move stars to first layer of network
-                assert isinstance(init, (list, tuple, np.ndarray))
-                all_splits_first_layer = []
-                for ss in shared.done_work_list:
-                    ss_new = LpStarState(init, spec=shared.spec)
-                    ss_new.prefilter = ss.prefilter
-                    ss_new.star.input_bounds_witnesses = ss.star.input_bounds_witnesses
-                    ss_new.star.lpi = ss.star.lpi
-                    all_splits_first_layer.append(ss_new)
-                    pass
+                    # there might remain some splits, because sub-network has already been proven save without performing split
+                    # move star to last layer of network
+                    for ss in shared.done_work_list:
+                        if ss.remaining_splits() > 0:
+                            n_layer = ss.cur_layer
+                            while n_layer < len(shared.network.layers):
+                                if not isinstance(shared.network.layers[n_layer], ReluLayer):
+                                    shared.network.layers[n_layer].transform_star(ss.star)
+                                n_layer += 1
+                        # else: do nothing
 
-                print("\nVerifying big network...\n")
-                Timers.tic("verify_another_network")
-                results_of_big_network = verify_another_network(network_big, all_splits_first_layer, shared.spec)
-                Timers.toc("verify_another_network")
-                print("\nVerification of big network done.\n")
+                    # move stars to first layer of network
+                    assert isinstance(init, (list, tuple, np.ndarray))
+                    all_splits_first_layer = []
+                    for ss in shared.done_work_list:
+                        ss_new = LpStarState(init, spec=shared.spec)
+                        ss_new.prefilter = ss.prefilter
+                        ss_new.star.input_bounds_witnesses = ss.star.input_bounds_witnesses
+                        ss_new.star.lpi = ss.star.lpi
+                        ss_new.is_safe = ss.is_safe
+                        all_splits_first_layer.append(ss_new)
+                        pass
 
-                print("\nResult of small network:")
-                process_result(shared)
+                    # move unsafe splits to beginning of list
+                    unsafes_first = []
+                    for i in range(2):
+                        for ss in all_splits_first_layer:
+                            if i == 0:
+                                if not ss.is_safe:
+                                    unsafes_first.append(ss)
+                            elif i == 1:
+                                if ss.is_safe:
+                                    unsafes_first.append(ss)
+                            else:
+                                raise NotImplementedError
 
-                print("\nOverall result (big and small network): \n")
-                overall_result: Result = results_of_big_network[-1]
+                    print("\nVerifying big network...\n")
+                    Timers.tic("verify_another_network")
+                    results_of_big_network = verify_another_network(network_big, unsafes_first, shared.spec)
+                    Timers.toc("verify_another_network")
+                    print("\nVerification of big network done.\n")
 
-                new_overall_result = Result(network_big)
+                    print("\nResult of small network:")
+                    process_result(shared)
 
-                new_overall_result.total_secs = time.perf_counter() - start
-                new_overall_result.timers = shared.result.timers
-                new_overall_result.n_split_fractions = shared.result.n_split_fractions
+                    print("\nOverall result (big and small network): \n")
+                    result_of_last_split_in_big_network: Result = results_of_big_network[-1]
 
-                new_overall_result.cinput = overall_result.cinput
-                new_overall_result.coutput = overall_result.coutput
-                new_overall_result.cinput_array = overall_result.cinput_array
-                new_overall_result.coutput_array = overall_result.coutput_array
-                new_overall_result.found_confirmed_counterexample = overall_result.found_confirmed_counterexample
-                new_overall_result.found_counterexample = overall_result.found_counterexample
-                new_overall_result.manager = overall_result.manager
-                new_overall_result.result_str = overall_result.result_str
+                    new_overall_result = Result(network_big)
 
-                new_finished_stars, new_unfinished_stars, new_finished_work_frac = (0, 0, 0)
+                    new_overall_result.total_secs = time.perf_counter() - start
+                    new_overall_result.timers = shared.result.timers
+                    new_overall_result.n_split_fractions = shared.result.n_split_fractions
+                    new_overall_result.small_only_secs = shared.result.small_only_secs
 
-                for r, cnt in zip(results_of_big_network, range(len(results_of_big_network))):
-                    new_overall_result.polys += r.polys if r.polys else []
-                    new_overall_result.stars += r.stars if r.stars else []
-                    new_overall_result.total_lps += r.total_lps
-                    new_overall_result.total_lps_enum += r.total_lps_enum
-                    new_overall_result.total_stars += r.total_stars
+                    new_overall_result.cinput = result_of_last_split_in_big_network.cinput
+                    new_overall_result.coutput = result_of_last_split_in_big_network.coutput
+                    new_overall_result.cinput_array = result_of_last_split_in_big_network.cinput_array
+                    new_overall_result.coutput_array = result_of_last_split_in_big_network.coutput_array
+                    new_overall_result.found_confirmed_counterexample = result_of_last_split_in_big_network.found_confirmed_counterexample
+                    new_overall_result.found_counterexample = result_of_last_split_in_big_network.found_counterexample
+                    new_overall_result.manager = result_of_last_split_in_big_network.manager
+                    new_overall_result.result_str = result_of_last_split_in_big_network.result_str
 
-                    (finished_stars, unfinished_stars, finished_work_frac) = r.progress_tuple
-                    new_finished_stars += finished_stars
-                    new_unfinished_stars += unfinished_stars
-                    new_finished_work_frac += (finished_work_frac if cnt == len(results_of_big_network) - 1 else 1) * shared.done_work_list[cnt].work_frac
+                    new_finished_stars, new_unfinished_stars, new_finished_work_frac = (0, 0, 0)
 
-                    new_overall_result.n_split_fractions += r.n_split_fractions - 1  # subtract 1 because initial split
+                    for r, cnt in zip(results_of_big_network, range(len(results_of_big_network))):
 
-                new_overall_result.progress_tuple = (new_finished_stars, new_unfinished_stars, new_finished_work_frac)
+                        # serialize stars/polys
+                        for s in r.stars:
+                            if not isinstance(s.lpi.lp, tuple):
+                                s.lpi.serialize()
 
-                process_result_res(new_overall_result)
+                        # new_overall_result.polys += r.polys if r.polys else []
+                        new_overall_result.stars += r.stars if r.stars else []
+                        new_overall_result.total_lps += r.total_lps
+                        new_overall_result.total_lps_enum += r.total_lps_enum
+                        new_overall_result.total_stars += r.total_stars
 
-                rv = new_overall_result
-            else:
+                        (finished_stars, unfinished_stars, finished_work_frac) = r.progress_tuple
+                        new_finished_stars += finished_stars
+                        new_unfinished_stars += unfinished_stars
+                        new_finished_work_frac += (finished_work_frac if cnt == len(results_of_big_network) - 1 else 1) * shared.done_work_list[cnt].work_frac
+
+                        new_overall_result.n_split_fractions += r.n_split_fractions - 1  # subtract 1 because initial split
+
+
+
+                    new_overall_result.progress_tuple = (new_finished_stars, new_unfinished_stars, new_finished_work_frac)
+
+                    process_result_res(new_overall_result)
+
+                    rv = new_overall_result
+                else:
+                    process_result(shared)
+                    rv = shared.result
+
+            except Exception as exc:
+                traceback.print_exc()
                 process_result(shared)
                 rv = shared.result
 
@@ -360,6 +390,9 @@ def process_result_res(result: Result):
 
 def process_result(shared):
     'process a verification result'
+
+    if not shared.result.total_secs:
+        shared.result.total_secs = shared.result.small_only_secs
 
     # save timing information
     if shared.had_exception.value:

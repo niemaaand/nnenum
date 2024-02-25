@@ -28,6 +28,9 @@ class Result(Freezable):
         # total verification time, in seconds
         self.total_secs = None
 
+        # verification of small network only (in verification of small and big)
+        self.small_only_secs = None
+
         # total number of times LP solver was called during enumeration (statistic)
         self.total_lps_enum = 0
 

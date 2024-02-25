@@ -33,6 +33,8 @@ class LpStarState(Freezable):
 
         self.should_try_overapprox = True
 
+        self.is_safe = False
+
         if safe_spec_list is not None:
             self.safe_spec_list = safe_spec_list
         elif isinstance(spec, DisjunctiveSpec):

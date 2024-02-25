@@ -111,19 +111,17 @@ class Worker(Freezable):
             should_exit = self.update_shared_variables()
             self.print_progress()
 
-        if self.shared.find_all_splits and not self.shared.had_timeout.value:
+        if self.shared.find_all_splits and not self.shared.had_timeout.value and not self.shared.result.big_network_proven_wrong:
             assert len(self.priv.work_list) == 0, "Private work still remaining."  # assert no more work
             assert self.shared.more_work_queue.qsize() == 0, "Shared work still remaining."
 
-            # remove None-elements from list
-            el_cnt = len(self.priv.work_done_list) - 1
-            while el_cnt >= 0:
-                if not self.priv.work_done_list[el_cnt]:
-                    self.priv.work_done_list.pop(el_cnt)
+        # remove None-elements from list
+        el_cnt = len(self.priv.work_done_list) - 1
+        while el_cnt >= 0:
+            if not self.priv.work_done_list[el_cnt]:
+                self.priv.work_done_list.pop(el_cnt)
 
-                el_cnt -= 1
-
-            #assert len(self.priv.work_done_list) >= len(work_done_list2), "work_done_list not the same as work_done_list2"
+            el_cnt -= 1
 
         Timers.tic('post_loop')
         self.update_final_stats()
@@ -294,6 +292,8 @@ class Worker(Freezable):
                 if Settings.RESULT_SAVE_POLYS:
                     self.save_poly(ss)
 
+                self.priv.ss.is_safe = is_safe
+
                 self.priv.ss = None
                 self.priv.finished_approx_stars += 1
 
@@ -306,6 +306,9 @@ class Worker(Freezable):
                     # urgently update shared variables to try to get more work
                     self.priv.shared_update_urgent = True
                     self.priv.fulfillment_requested_time = time.perf_counter()
+
+        if self.priv.ss:
+            self.priv.ss.is_safe = is_safe
 
         return is_safe#, violation_stars
         
@@ -556,6 +559,9 @@ class Worker(Freezable):
         if not self.shared.find_all_splits:
             if not rv:
                 rv = self.shared.result.found_confirmed_counterexample.value == 1
+        else:
+            if not rv:
+                rv = bool(self.shared.result.big_network_proven_wrong.value)
 
         if not rv and self.shared.had_exception.value == 1:
 
@@ -579,7 +585,7 @@ class Worker(Freezable):
         if self.shared.find_all_splits:
             if self.shared.had_timeout.value:
                 print("Clearing work because of timeout.")
-            elif not (len(self.priv.work_list) == 0 and self.shared.more_work_queue.qsize() == 0):
+            elif not (len(self.priv.work_list) == 0 and self.shared.more_work_queue.qsize() == 0) and not self.shared.result.big_network_proven_wrong:
                 print("Clearing work. THIS SHOULD NOT HAPPEN!")
 
         # force an update
@@ -668,7 +674,7 @@ class Worker(Freezable):
                     # min item is heaviest (closest to root)
                     # heaviest will be first item on list
                     new_ss = self.priv.work_list.pop(0)
-                    self.priv.work_done_list.append(new_ss) # TODO: might be unnecessary here
+                    self.priv.work_done_list.append(new_ss) # TODO: might be unnecessary here but this function is never called with single-threaded running
 
                     self.priv.num_offloaded += 1
                     num_zeros -= 1

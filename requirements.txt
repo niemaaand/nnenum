@@ -6,5 +6,6 @@ onnxruntime==1.12.1
 skl2onnx==1.12
 swiglpk
 termcolor
+matplotlib
 
 

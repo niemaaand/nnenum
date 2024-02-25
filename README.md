@@ -1,47 +1,19 @@
-[![Build Status](https://travis-ci.com/stanleybak/nnenum.svg?branch=master)](https://app.travis-ci.com/github/stanleybak/nnenum)
+# General information
+This repository extends nnenum (https://github.com/stanleybak/nnenum) to 
+verifying not only a neural Network A, but also another network B (where B is intended 
+to be smaller than A). The splits produced by verifying B are collected, transformed to 
+input space and used to verify A. 
 
-# nnenum - The Neural Network Enumeration Tool
-**nnenum** (pronounced *en-en-en-um*) is a high-performance neural network verification tool. Multiple levels of abstraction are used to quickly verify ReLU networks without sacrificing completeness. Analysis combines three types of zonotopes with star set (triangle) overapproximations, and uses [efficient parallelized ReLU case splitting](http://stanleybak.com/papers/bak2020cav.pdf). The tool is written in Python 3, uses GLPK for LP solving and directly accepts [ONNX](https://github.com/onnx/onnx) network files and `vnnlib` specifications as input. The [ImageStar trick](https://arxiv.org/abs/2004.05511) allows sets to be quickly propagated through all layers supported by the [ONNX runtime](https://github.com/microsoft/onnxruntime), such as convolutional layers with arbitrary parameters.
+A benchmark for evaluation (vnncomp2022_benchmarks/benchmarks/mnist_fc 
+from https://github.com/ChristopherBrix/vnncomp2022_benchmarks) has been 
+added along with some smaller networks (vnncomp2022_benchmarks/benchmarks/mnist_fc/onnx_small). 
 
-The tool is written by Stanley Bak ([homepage](http://stanleybak.com), [twitter](https://twitter.com/StanleyBak)).
+The mapping, which small network to use for which big network, is done by the file 
+vnncomp2022_benchmarks/benchmarks/mnist_fc/smaller_networks.json with "big: small" ("key: value"). 
 
-### Getting Started
-The `Dockerfile` shows how to install all the dependencies (mostly python packages) and set up the environment. The tool loads neural networks directly from ONNX files and properties to check from `vnnlib` files.
-For example, try running:
+The smaller networks included in this repository were trained by student teacher training, the 
+code can be found at https://github.com/niemaaand/PraktikumProgrammverifikation. 
 
-```
-python3 -m src.nnenum.nnenum examples/acasxu/data/ACASXU_run2a_3_3_batch_2000.onnx examples/acasxu/data/prop_9.vnnlib
-```
+The results of the evaluation are summarized in results/Evaluation.md. 
 
-You can see a few more examples in `run_tests.sh`.
-
-### VNN 2020 Neural Network Verification Competition (VNN-COMP) Version
-The nnenum tool performed well in VNN-COMP 2020, being the only tool to verify all the ACAS-Xu benchmarks (each in under 10 seconds). The version used for the competition as well as model files and scripts to run the compeition benchmarks are in the `vnn2020` branch.
-
-### CAV 2020 Paper Version
-The CAV 2020 paper ["Improved Geometric Path Enumeration for Verifying ReLU Neural Networks"](http://stanleybak.com/papers/bak2020cav.pdf) by S. Bak, H.D Tran, K. Hobbs and T. T. Johnson corresponds to optimizations integrated into the exact analysis mode of nnenum, which also benefits overapproximative analysis. The paper version and repeatability evaluation package instructions are available [here](http://stanleybak.com/papers/bak2020cav_repeatability.zip).
-
-### Citing nnenum ###
-The following citations can be used for nnenum:
-
-```
-@inproceedings{bak2021nfm,
-  title={nnenum: Verification of ReLU Neural Networks with Optimized Abstraction Refinement},
-  author={Bak, Stanley},
-  booktitle={NASA Formal Methods Symposium},
-  pages={19--36},
-  year={2021},
-  organization={Springer}
-}
-```
-
-```
-@inproceedings{bak2020cav,
-  title={Improved Geometric Path Enumeration for Verifying ReLU Neural Networks},
-  author={Bak, Stanley and Tran, Hoang-Dung and Hobbs, Kerianne and Johnson, Taylor T.},
-  booktitle={Proceedings of the 32nd International Conference on Computer Aided Verification},
-  year={2020},
-  organization={Springer}
-}
-```
 

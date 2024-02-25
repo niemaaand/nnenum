@@ -81,8 +81,8 @@ class Settings(metaclass=FreezableMeta):
         cls.CONTRACT_LP_CHECK_EPSILON = 1e-4 # numerical error tolerated when doing contractions before error, None=skip
 
         # the types of overapproximation to use in each round
-        cls.OVERAPPROX_TYPES = [#['zono.area'],
-                                #['zono.area', 'zono.ybloat', 'zono.interval'],
+        cls.OVERAPPROX_TYPES = [['zono.area'],
+                                ['zono.area', 'zono.ybloat', 'zono.interval'],
                                 ['zono.area', 'zono.ybloat', 'zono.interval', 'star.lp']]
 
         cls.OVERAPPROX_NEAR_ROOT_MAX_SPLITS = 2
