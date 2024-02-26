@@ -12,7 +12,10 @@ The mapping, which small network to use for which big network, is done by the fi
 vnncomp2022_benchmarks/benchmarks/mnist_fc/smaller_networks.json with "big: small" ("key: value"). 
 
 The smaller networks included in this repository were trained by student teacher training, the 
-code can be found at https://github.com/niemaaand/PraktikumProgrammverifikation. 
+code can be found at https://github.com/niemaaand/PraktikumProgrammverifikation. The configuration
+(options) that have been used to train a net, can be retrieved by the name of the 
+options-file, which is the first part of a NN-file name. The option files can be found at
+https://github.com/niemaaand/PraktikumProgrammverifikation/tree/dev/saved_models. 
 
 The results of the evaluation are summarized in results/Evaluation.md. 
 

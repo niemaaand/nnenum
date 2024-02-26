@@ -1,6 +1,6 @@
 {
   "onnx/2024_02_20_10_46_42_options.json_Options__0.9854999780654907_f1Score__19_Epoch.onnx": "onnx_small/2024_02_21_13_00_46_options.json_Options__0.9372000098228455_f1Score__14_Epoch.onnx",
-  "onnx/mnist-net_256x2.onnx": "onnx_small/2024_02_20_11_36_49_options.json_Options__0.986299991607666_f1Score__19_Epoch.onnx",
+  "onnx/mnist-net_256x2.onnx": "onnx_small/2024_02_26_10_49_57_options.json_Options__0.9718000292778015_f1Score__6_Epoch.onnx",
   "onnx/mnist-net_256x4.onnx": "onnx_small/2024_02_04_14_13_43_options.json_Options__0.9835000038146973_f1Score__16_Epoch.onnx",
   "onnx/mnist-net_256x6.onnx": "onnx_small/2024_02_01_17_46_38_options.json_Options__0.09700000286102295_f1Score__0_Epoch.onnx"
 }

@@ -177,8 +177,7 @@ def run_enumerations(benchmark_path, res_file_path):
         first_run = False
 
 
-def evaluate(eval_path):
-    successful_results = ["safe", "unsafe (unconfirmed)", "unsafe"]
+def evaluate(eval_path, successful_results=["safe", "unsafe (unconfirmed)", "unsafe"]):
 
     # calc speedups (in percent)
     relative_speedups = []
@@ -294,6 +293,7 @@ def create_plot(eval_path):
 
 def print_stats(relative_speedups):
     relative_speedups.sort()
+    print("Number of instances: {}".format(len(relative_speedups)))
     print("Speedups: {}".format(len([p for p in relative_speedups if p <= 1])))
     print("Average Speedups: {}".format(sum(relative_speedups) / len(relative_speedups)))
     print("Median Speedups: {}".format(relative_speedups[int(len(relative_speedups) / 2)]))
